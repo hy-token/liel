@@ -1,0 +1,62 @@
+# Rust
+/target/
+/target-codex*/
+
+# Python virtual environments
+.venv/
+.venv*/
+.venv-win/
+.venv-wsl-broken/
+venv/
+venv*/
+env/
+env*/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# maturin / PyO3 build artifacts
+*.so
+*.egg-info/
+dist/
+*.whl
+
+# pytest
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Editors
+.cursor/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# liel test database files
+*.liel
+
+# MkDocs
+/site/
+
+# Local Codex verification outputs
+/codex-*/
+/.codex-*/
+
+# Notebook data caches & execution artifacts
+examples/notebooks/data/
+examples/notebooks/*.executed.ipynb
+examples/notebooks/**/benchrun_history.jsonl
+notebooks/data/
+notebooks/*.executed.ipynb
+notebooks/**/benchrun_history.jsonl
+.claude/settings.local.json
+.claude/settings.json

@@ -1,0 +1,33 @@
+# Default to LF line endings; let Git auto-detect text files.
+* text=auto eol=lf
+
+# Source code: explicit text + LF.
+*.rs    text eol=lf
+*.py    text eol=lf
+*.pyi   text eol=lf
+*.toml  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+
+# Windows-specific scripts: keep CRLF so they remain runnable when checked
+# out on Windows without setting core.autocrlf.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binary assets: never modify, never normalise line endings.
+*.liel  binary
+*.pyd   binary
+*.so    binary
+*.dylib binary
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.ico   binary
+
+# Treat lockfiles as binary in diffs to keep PR noise down (still tracked).
+Cargo.lock        linguist-generated=true
+uv.lock           linguist-generated=true
+poetry.lock       linguist-generated=true
