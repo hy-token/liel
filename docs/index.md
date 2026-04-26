@@ -1,14 +1,22 @@
 # liel documentation
 
-**liel** is single-file graph memory for local AI tools, agents, and Python workflows.
+**liel** is a single-file, portable external brain for local AI tools, agents, and Python workflows.
 
 It stores facts, decisions, tasks, files, sources, tool results, and their relationships in one portable `.liel` file. The core package has no required runtime dependencies and does not need an external database server, cloud service, or background daemon.
 
-Under the hood, `liel` is a Rust-core embedded **Property Graph database** with Python bindings and optional MCP integration.
+Under the hood, `liel` uses a Rust-core **property graph storage engine** with Python bindings and optional MCP integration.
+
+If you are new to the project, start with **[Why liel](why-liel.md)**.
+It explains the problem `liel` is designed for: durable AI memory that keeps relationships, not just retrieved text.
 
 ---
 
 ## Start here
+
+### Understanding why this exists
+
+Read **[Why liel](why-liel.md)**.
+It covers the LLM memory problem, how graph memory differs from text retrieval, and why `liel` uses a single local file.
 
 ### Python user installing with `pip install liel`
 
@@ -32,6 +40,7 @@ For frozen scope and deliberate non-goals, see **[product trade-offs](design/pro
 
 ### Want a quick overview
 
+- [Why liel](why-liel.md) - problem, before/after, and product positioning
 - [Design entry point](design/index.md) - philosophy and trade-offs
 - [Behavior and specifications](reference/index.md) - features, reliability, and byte format
 - [Feature list](reference/features.md) - what is provided at a glance
@@ -44,6 +53,7 @@ For frozen scope and deliberate non-goals, see **[product trade-offs](design/pro
 
 | Section | Audience |
 |---|---|
+| **[Why liel](why-liel.md)** | New users deciding whether this solves their AI memory problem |
 | **[Guide](guide/index.md)** | Application and tool users using Python or MCP |
 | **[Reference](reference/index.md)** | Users and connector authors checking behavior and file compatibility |
 | **[Design](design/index.md)** | Anyone reviewing architecture, scope, and trade-offs |

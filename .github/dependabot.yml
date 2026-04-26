@@ -1,0 +1,37 @@
+# Keep Cargo, pip, and GitHub Actions dependencies up to date with weekly PRs.
+# Grouping reduces PR noise: every ecosystem produces at most one PR per week
+# unless a CVE forces an out-of-cycle update.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      rust-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      python-dev-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      gha-deps:
+        patterns:
+          - "*"

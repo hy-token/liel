@@ -88,6 +88,12 @@ Render a chosen subgraph as Mermaid.
 
 ## Write tools
 
+The MCP write tools do not currently add standard metadata properties such as
+creation timestamps, update timestamps, or session IDs. A reserved metadata
+convention may be added in a future release, but the initial MCP behavior keeps
+created graph records exactly to the user-supplied labels, properties, and
+edges.
+
 ### liel_append
 
 Append new nodes and edges in one atomic commit.
@@ -101,7 +107,7 @@ not need reuse or dedupe behavior.
 |---|---|---|---|
 | `nodes` | string (JSON) | `"[]"` | JSON array of new node objects. |
 | `edges` | string (JSON) | `"[]"` | JSON array of edge objects. |
-| `session` | string | `""` | Optional `_session` applied to created nodes. |
+| `session` | string | `""` | Reserved for possible future metadata support; currently no properties are added automatically. |
 
 Each node object supports:
 
@@ -156,7 +162,7 @@ edges idempotently.
 |---|---|---|---|
 | `nodes` | string (JSON) | `"[]"` | JSON array of merge node objects. |
 | `edges` | string (JSON) | `"[]"` | JSON array of edge objects; edges are added with idempotent semantics. |
-| `session` | string | `""` | Optional `_session` applied only to newly created nodes. |
+| `session` | string | `""` | Reserved for possible future metadata support; currently no properties are added automatically. |
 
 Each node object may use one of these patterns:
 

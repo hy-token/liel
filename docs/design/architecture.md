@@ -1,6 +1,8 @@
 # Architecture overview
 
-`liel` is a **property graph** database that persists into a **single file** (`.liel`). There is no server process; you embed the library directly in your application.
+`liel` is a **portable external brain** for LLMs and local AI tools. Internally, that memory is persisted as a **property graph** inside a **single file** (`.liel`). There is no server process; you carry the library and the `.liel` file with the workflow that needs the memory.
+
+In other words, "property graph database" describes the storage engine, while "portable external brain" describes the product promise.
 
 - **Logical model** — how users see nodes, edges, labels, and properties.
 - **Physical model** — how those map to disk (pages, fixed-size slots, adjacency lists).
@@ -10,7 +12,7 @@ The byte-level layout (offset table) is consolidated in **[format spec](../refer
 
 ---
 
-## Logical model (property graph)
+## Logical model (property graph memory)
 
 - **Node** — `id` (auto-assigned u64), one or more **labels**, optional **properties** (key/value map).
 - **Edge** — `id` (auto-assigned), **source** and **target** nodes, **type** (label-equivalent), optional properties.
@@ -23,6 +25,8 @@ For the API surface and limits, see **[feature list](../reference/features.md)**
 ## Physical model: pages and slots
 
 A `.liel` file is treated as a sequence of **fixed 4096-byte pages**. The first 128 bytes of **page 0** are the **file header**; the remaining 3968 bytes of page 0 are currently unused. The **WAL** lives at a fixed location: a 4 MiB reservation starting at **byte offset 4096** (page-aligned). Nodes and edges live in **fixed-size slots** (64 B and 80 B respectively); variable-length data — label strings and properties — lives in separate **property extents**, referenced from the slot by absolute file offset.
+
+This low-level layout matters because the product's portability depends on a single file that is easy to move, copy, back up, and reopen later as the same memory.
 
 Separating fixed-size slots from variable-length payload makes slot arrays scannable at a **constant stride**, which keeps the implementation simple. The numeric details and field layouts are owned exclusively by **[format spec](../reference/format-spec.md)**.
 

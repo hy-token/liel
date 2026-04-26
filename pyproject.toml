@@ -1,0 +1,144 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "liel"
+version = "0.2.0"
+description = "Single-file graph memory for local AI, agents, and Python applications"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+keywords = ["graph", "database", "embedded", "memory", "ai", "mcp"]
+authors = [
+  { name = "hy-token", email = "51951093+hy-token@users.noreply.github.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Rust",
+  "Topic :: Database",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+
+[project.scripts]
+liel-mcp = "liel.mcp.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/hy-token/liel"
+Documentation = "https://github.com/hy-token/liel/blob/main/docs/index.md"
+Repository = "https://github.com/hy-token/liel"
+"Bug Tracker" = "https://github.com/hy-token/liel/issues"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "liel.liel"
+exclude = [
+  ".cursor/**",
+  ".github/**",
+  ".gitattributes",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "CHANGELOG.md",
+  "CLAUDE.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "SECURITY.md",
+  "README.ja.md",
+  "docs/**",
+  "examples/**",
+  "mkdocs.yml",
+  "requirements-dev.txt",
+  "scripts/**",
+  "tests/**",
+  "codex-*",
+  ".codex-*",
+]
+
+# ─── Testing ──────────────────────────────────────────────────────────────────
+# Centralise pytest defaults so `pytest` alone does the right thing: runs only
+# the Python integration tests under tests/python and keeps output quiet.
+#
+# Do not force a repo-local `--basetemp` here. On Windows, aggressively
+# reusing the same directory across runs can leave permission-denied cleanup
+# failures behind when the interpreter or native extension still holds a file
+# handle for a moment. CI passes an explicit basetemp only where needed.
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests/python"]
+addopts = [
+  "-q",
+]
+
+# ─── Lint ─────────────────────────────────────────────────────────────────────
+# Lightweight ruff config; the selected rules are a superset of what CI
+# enforces today and stay close to the style already used in the codebase.
+# Keep this narrow on purpose so a future `ruff check` gate can be added to CI
+# without a churn-inducing reformat.
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+src = ["python", "tests", "examples"]
+extend-exclude = [
+  "target",
+  "site",
+  ".venv",
+  ".venv-win",
+]
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "W",   # pycodestyle warnings
+  "I",   # isort
+  "UP",  # pyupgrade
+  "B",   # flake8-bugbear
+]
+ignore = [
+  "E501",  # line too long: handled by formatter; some doc strings intentionally long
+  "E741",  # ambiguous variable name (short names like `l` are acceptable here)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Examples intentionally favour readability over style consistency.
+"examples/**" = ["E402", "F401"]
+# Tests may redefine `db` fixture-style names and use lambdas freely.
+"tests/**"    = ["E731"]
+
+# ─── Type checking ────────────────────────────────────────────────────────────
+# Pyright config: strict on the runtime-shaped type stub itself so mismatches
+# between liel.pyi and the real Rust extension surface immediately, but lenient
+# on tests where pytest fixtures intentionally rely on dynamic typing.
+[tool.pyright]
+include = ["python", "tests/python"]
+exclude = ["**/__pycache__", "target", "site", ".venv", ".venv-win"]
+pythonVersion = "3.9"
+reportMissingImports = "error"
+reportMissingTypeStubs = "warning"
+strict = ["python/liel/**"]
+
+# Mypy config: same baseline. Kept loose intentionally so contributors can
+# choose either checker locally; CI can later add `mypy --strict python/liel`
+# without changing this section.
+[tool.mypy]
+python_version = "3.9"
+files = ["python", "tests/python"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true

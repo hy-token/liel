@@ -207,8 +207,9 @@ Unsupported formats fail closed.
 
 Good short description:
 
-> `liel` is an embedded graph store that uses a page-level WAL to recover
-> committed writes under a single-writer, single-file, local-filesystem model.
+> `liel` is a portable external-brain store built on a graph engine that uses
+> a page-level WAL to recover committed writes under a single-writer,
+> single-file, local-filesystem model.
 
 Avoid saying:
 

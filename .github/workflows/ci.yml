@@ -1,0 +1,297 @@
+# Continuous integration: Rust fmt/clippy + tests, and Python (maturin + pytest)
+# on Linux, Windows, macOS.
+#
+# Note: There is no GitHub Pages deployment workflow — the public docs site is
+# not hosted (GitHub Free cannot restrict Pages access). MkDocs is kept for
+# local preview only (`mkdocs serve` / `mkdocs build --strict`).
+name: CI
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Rust fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: cargo fmt
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  rust:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # pyo3 links against libpython when the `extension-module` feature is
+      # not enabled (the default for `cargo test`). Pin a Python version so
+      # the pyo3 build script finds the interpreter deterministically on all
+      # three runner OSes.
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: cargo test
+        run: cargo test
+
+  python:
+    name: Python (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.11", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-py${{ matrix.python-version }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      # `maturin develop` refuses to run outside a virtualenv/conda env.
+      # Create a `.venv` and expose it to the rest of the job via PATH and
+      # `VIRTUAL_ENV` so subsequent pip / maturin / pytest steps all target it.
+      - name: Create and activate venv
+        shell: bash
+        run: |
+          python -m venv .venv
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "$GITHUB_WORKSPACE/.venv/Scripts" >> "$GITHUB_PATH"
+            echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
+          else
+            echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+            echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install Python tooling
+        run: python -m pip install --upgrade pip -r requirements-dev.txt
+
+      - name: Build extension in-place
+        run: maturin develop
+
+      - name: Run pytest
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            python -m pytest tests/python -q --basetemp ./target/pytest-temp
+          else
+            python -m pytest tests/python -q
+          fi
+
+      # Rebuild with `test-fault-injection` enabled and run the vacuum
+      # crash-safety harness.  Kept as a separate step so the previous
+      # pytest run validates the production wheel (no injection hooks
+      # at all) before we layer on the extra feature.  Windows is
+      # excluded because the harness uses `os.fork()`.
+      - name: Build extension with test-fault-injection
+        if: runner.os != 'Windows'
+        run: maturin develop --features pyo3/extension-module,test-fault-injection
+
+      - name: Run vacuum crash-safety tests
+        if: runner.os != 'Windows'
+        run: python -m pytest tests/python/test_vacuum_crash_safety.py -q
+
+  # Lightweight Python lint gate. Kept in its own job so a style issue does not
+  # mask a real test failure in matrix builds and so the wheel build does not
+  # need to wait on it.
+  python-lint:
+    name: Python lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install ruff
+        run: python -m pip install --upgrade pip ruff
+      - name: ruff check
+        run: ruff check python tests/python
+      - name: ruff format check
+        run: ruff format --check python tests/python
+
+  package-smoke:
+    name: Package smoke (ubuntu, py3.11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Create build venv
+        run: python -m venv .venv-build
+      - name: Install build tooling
+        shell: bash
+        run: |
+          source .venv-build/bin/activate
+          python -m pip install --upgrade pip -r requirements-dev.txt
+      - name: Build wheel
+        shell: bash
+        run: |
+          source .venv-build/bin/activate
+          maturin build --release --out dist
+      - name: Create smoke-test venv
+        run: python -m venv .venv-smoke
+      - name: Install wheel and import liel
+        shell: bash
+        run: |
+          source .venv-smoke/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install --only-binary=:all: dist/*.whl
+          python -c "import liel; print(liel.__version__)"
+
+  # Smoke-run the reproducible Python benchmark script so accidental import
+  # errors or method-name regressions surface quickly. We deliberately do NOT
+  # compare elapsed times across runs: GitHub Actions runners are too noisy
+  # for that to be useful, and we do not want to fail PRs on jitter. Releases
+  # cite numbers measured locally per the guidance in
+  # docs/reference/benchmarks.md.
+  bench-smoke:
+    name: Benchmark smoke (ubuntu, py3.11)
+    runs-on: ubuntu-latest
+    # Skip on PRs from forks: those workflows do not get the cache and the
+    # extra wheel build doubles their wall time without offering value.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Create venv
+        run: python -m venv .venv-bench
+      - name: Install tooling and build extension
+        shell: bash
+        run: |
+          source .venv-bench/bin/activate
+          python -m pip install --upgrade pip -r requirements-dev.txt
+          maturin develop
+      - name: Run benchmark (small workload)
+        shell: bash
+        run: |
+          source .venv-bench/bin/activate
+          python scripts/bench/bench_python_api.py --nodes 2000 | tee bench-results.txt
+      - name: Upload bench output
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench-results
+          path: bench-results.txt
+
+  # Security advisories on Cargo dependencies. Run on every push so a freshly
+  # filed CVE on a transitive crate fails CI within a day rather than waiting
+  # for the next dependency bump.
+  cargo-audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo-audit binary
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: ${{ runner.os }}-cargo-audit-bin
+      - name: Install cargo-audit
+        run: |
+          if ! command -v cargo-audit >/dev/null 2>&1; then
+            cargo install cargo-audit --locked
+          fi
+      - name: cargo audit
+        run: cargo audit
+
+  # MkDocs --strict catches broken intra-docs links, missing nav entries, and
+  # YAML config typos before they hit a contributor's local preview.
+  docs-build:
+    name: MkDocs build (strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install docs deps
+        # Single-source dev deps: requirements-dev.txt bundles mkdocs + theme
+        # alongside the rest of the toolchain (maturin/pytest/twine). This job
+        # only needs the MkDocs subset but reusing the same file keeps the
+        # dependency set consistent across all CI jobs.
+        run: python -m pip install --upgrade pip -r requirements-dev.txt
+      - name: mkdocs build --strict
+        run: mkdocs build --strict
