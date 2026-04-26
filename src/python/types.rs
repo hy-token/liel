@@ -36,6 +36,8 @@ use crate::graph::merge::{
 use crate::graph::node::Node;
 use crate::storage::prop_codec::PropValue;
 
+type PyObject = Py<PyAny>;
+
 /// Smart guard returned by [`acquire_graph_lock`] that hides the
 /// `Option<GraphDB>` indirection used to support explicit `close()`/`__exit__`.
 ///
