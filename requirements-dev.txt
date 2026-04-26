@@ -33,23 +33,23 @@ maturin>=1.5,<2.0
 # --- Tests ---------------------------------------------------------------
 # pytest: runs the Python integration tests under tests/python. Defaults are
 # configured in pyproject.toml under [tool.pytest.ini_options].
-pytest>=7.4,<9.0
+pytest>=8.4.2,<9.0
 
 # --- Lint / Format --------------------------------------------------------
 # ruff: fast Python linting and formatting. Target directories and enabled
 # rules live in pyproject.toml under [tool.ruff]. CI runs the same config with
 # `ruff check` and `ruff format --check`.
-ruff>=0.5,<1.0
+ruff>=0.15.12,<1.0
 
 # --- Documentation (MkDocs) ----------------------------------------------
 # mkdocs: static site generator for Markdown files under docs/. Use
 # `mkdocs serve` for local previews and `mkdocs build --strict` for strict
 # link and configuration checks. CI uses the same build command.
-mkdocs>=1.5,<2.0
+mkdocs>=1.6.1,<2.0
 
 # mkdocs-material: Material Design-based theme used by mkdocs.yml via
 # `theme: name: material`.
-mkdocs-material>=9.5,<10.0
+mkdocs-material>=9.7.6,<10.0
 
 # --- Release checks -------------------------------------------------------
 # twine: official PyPA packaging utility. Before release, run
@@ -57,4 +57,4 @@ mkdocs-material>=9.5,<10.0
 # classifiers, and required metadata. Publishing is handled by GitHub Actions
 # via Trusted Publishing (OIDC), so maintainers should rarely run
 # `twine upload` manually.
-twine>=5.0,<7.0
+twine>=6.2.0,<7.0
