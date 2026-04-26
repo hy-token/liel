@@ -18,7 +18,7 @@ name = "liel"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3 = { version = "0.24", features = ["abi3-py39"] }
+pyo3 = { version = "0.28", features = ["abi3-py39"] }
 
 [dev-dependencies]
 tempfile = "3"
