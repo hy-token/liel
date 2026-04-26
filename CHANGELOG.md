@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-04-26
+
+### Fixed
+
+- Restore all-wheel downloads for publish workflow metadata validation while
+  keeping install-smoke checks scoped to each runner's own wheel artifact.
+
 ## [0.2.5] - 2026-04-26
 
 ### Fixed

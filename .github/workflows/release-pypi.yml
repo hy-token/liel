@@ -160,7 +160,8 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          name: wheels-${{ matrix.os }}
+          pattern: wheels-*
+          merge-multiple: true
 
       - name: Download sdist artifact
         uses: actions/download-artifact@v8
@@ -192,8 +193,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: wheels-*
-          merge-multiple: true
+          name: wheels-${{ matrix.os }}
 
       - name: Install wheel in a clean venv
         shell: bash
