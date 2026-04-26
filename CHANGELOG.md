@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-04-26
+
+### Fixed
+
+- Download only the current runner's wheel artifact during publish workflow
+  install-smoke checks, preventing pip from trying to install incompatible
+  wheels built for other operating systems or architectures.
+
 ## [0.2.4] - 2026-04-26
 
 ### Changed
