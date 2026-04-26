@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-04-26
+
+### Changed
+
+- Publish workflow now runs from `main` with an explicit `release_tag` input
+  and checks out that tag for builds, avoiding GitHub UI tag-selector issues
+  while preserving tag/version validation.
+
 ## [0.2.3] - 2026-04-26
 
 ### Changed

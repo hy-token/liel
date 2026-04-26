@@ -1,8 +1,8 @@
 # Build wheels (3 OS) + sdist and publish to TestPyPI / PyPI.
 #
-# Releases are manual on purpose. The workflow must be run from a v* tag
-# whose name matches pyproject.toml (for example v0.2.0). A tag push alone
-# never uploads to PyPI.
+# Releases are manual on purpose. Run this workflow from the default branch and
+# pass a v* release_tag whose name matches pyproject.toml (for example v0.2.0).
+# A tag push alone never uploads to PyPI.
 #
 # Production publishing is allowed only from hy-token/liel. This workflow is
 # also kept in liel-dev as a synced template, but the publish job is guarded.
@@ -29,6 +29,10 @@ on:
           - testpypi
           - pypi
         default: testpypi
+      release_tag:
+        description: "Release tag to build and publish (for example v0.2.3)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -43,6 +47,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.release_tag }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -74,11 +80,10 @@ jobs:
         shell: bash
         run: |
           expected="v${{ steps.version.outputs.version }}"
-          actual="${{ github.ref_name }}"
-          if [[ "${{ github.ref_type }}" != "tag" || "$actual" != "$expected" ]]; then
-            echo "This workflow must be run from tag $expected."
-            echo "Current ref type: ${{ github.ref_type }}"
-            echo "Current ref name: $actual"
+          actual="${{ github.event.inputs.release_tag }}"
+          if [[ "$actual" != "$expected" ]]; then
+            echo "release_tag must be $expected."
+            echo "Requested release_tag: $actual"
             exit 1
           fi
 
@@ -86,7 +91,7 @@ jobs:
         run: |
           echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Cargo version: ${{ steps.version.outputs.cargo_version }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Tag: ${{ github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tag: ${{ github.event.inputs.release_tag }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Target: ${{ github.event.inputs.target }}" >> "$GITHUB_STEP_SUMMARY"
 
   build-wheels:
@@ -100,6 +105,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.release_tag }}
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -121,6 +128,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.release_tag }}
 
       - name: Build sdist
         uses: PyO3/maturin-action@v1
