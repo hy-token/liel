@@ -1,0 +1,94 @@
+# MkDocs — https://www.mkdocs.org/
+# Theme — https://squidfunk.github.io/mkdocs-material/
+#
+# This config drives a LOCAL preview only. We do not deploy to GitHub Pages
+# anymore (see CONTRIBUTING.md). The same file is synced into the public
+# repo (hy-token/liel), where only the English Markdown files exist.
+
+site_name: liel documentation
+site_description: Single-file graph memory for local AI
+site_author: hy-token
+site_url: https://github.com/hy-token/liel
+
+repo_name: hy-token/liel
+repo_url: https://github.com/hy-token/liel
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search:
+      lang:
+        - en
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+# Exclude maintainer-only material from the rendered site:
+# - internal/**       : process / learn / rust-modules (Japanese maintainer docs)
+# - **/*.ja.md        : Japanese sources (kept in liel-dev for maintainers,
+#                       not shipped to hy-token/liel and not navigated to)
+# - documentation-taxonomy.ja.md is covered by the **/*.ja.md rule.
+exclude_docs: |
+  internal/**
+  **/*.ja.md
+
+nav:
+  - Home: index.md
+  - Why liel: why-liel.md
+  - Design:
+      - Overview: design/index.md
+      - Architecture: design/architecture.md
+      - Product trade-offs: design/product-tradeoffs.md
+  - Behavior and specs:
+      - Overview: reference/index.md
+      - Feature list: reference/features.md
+      - Reliability and failure model: reference/reliability.md
+      - Format spec: reference/format-spec.md
+  - Use liel:
+      - Overview: guide/index.md
+      - APIs and integrations:
+          - Overview: guide/connectors/index.md
+          - Python: guide/connectors/python.md
+      - MCP (AI integration):
+          - Overview & quick start: guide/mcp/index.md
+          - Claude project memory: guide/mcp/claude-memory.md
+          - Tools reference: guide/mcp/tools.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/hy-token/liel
+
+copyright: Copyright &copy; hy-token

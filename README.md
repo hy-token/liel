@@ -3,17 +3,22 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/hy-token/liel/blob/main/LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/hy-token/liel/ci.yml?branch=main&label=CI)](https://github.com/hy-token/liel/actions/workflows/ci.yml)
 
-**Single-file graph memory for local AI, agents, and Python applications. Standalone. Zero core dependencies. No server.**
+**Single-file graph memory for local AI agents.  
+Turn LLM interactions into a persistent, traversable knowledge graph - not just text retrieval.**
 
 `liel` is a lightweight local graph memory store for LLM tools, AI agents, and Python applications.
 It stores facts, decisions, tasks, files, sources, tool results, and their relationships in one portable `.liel` file.
+As a product, `liel` is best understood as a **portable external brain for LLM workflows**, not as a general-purpose graph database.
+
+Use it standalone from Python, or expose the same `.liel` file as an MCP-backed memory layer for tools like Claude.
 
 The core package has **no runtime dependencies**. No external database server, cloud service, or background daemon is required. On supported platforms, `pip install liel` is enough to get started.
 
 MCP integration is optional. Install `liel[mcp]` only when you want to expose a `.liel` memory file to an MCP-capable AI tool.
 
-Under the hood, `liel` is a Rust-core embedded **Property Graph database** with a Python-first API and optional MCP integration.
-If SQLite is the one-file relational database, `liel` is the one-file graph memory layer for relationship-centric AI workflows.
+Under the hood, `liel` uses a Rust-core **property graph storage engine** with a Python-first API and optional MCP integration.
+If SQLite is the one-file relational database, `liel` aims to be the one-file **external brain** for relationship-centric AI workflows.
+It is not positioned as a full graph database server; it is a minimal, persistent graph substrate for building higher-level memory systems.
 
 > *Etymology: a portmanteau of French* lier *(to connect) and Latin* ligare.
 
@@ -33,6 +38,7 @@ See [Design principles](docs/design/principles.md).
 - [Quickstart](#quickstart)
 - [Install](#install)
 - [What It Is](#what-it-is)
+- [How this differs from RAG](#how-this-differs-from-rag)
 - [When liel fits](#when-liel-fits)
 - [When liel does not fit](#when-liel-does-not-fit)
 - [Design trade-offs](#design-trade-offs)
@@ -44,7 +50,7 @@ See [Design principles](docs/design/principles.md).
 
 ## Quickstart
 
-### 1. Python property graph
+### 1. LLM memory in one file
 
 Install the core package:
 
@@ -52,7 +58,32 @@ Install the core package:
 pip install liel
 ```
 
-Then run a minimal graph example:
+Instead of losing context between sessions, store decisions and relationships as a graph:
+
+```python
+import liel
+
+with liel.open("agent-memory.liel") as db:
+    task = db.add_node(["Task"], name="Design AI memory system")
+    decision = db.add_node(
+        ["Decision"],
+        content="Use graph memory instead of text-only retrieval",
+    )
+    source = db.add_node(["Source"], title="Architecture notes")
+
+    db.add_edge(task, "LED_TO", decision)
+    db.add_edge(decision, "SUPPORTED_BY", source)
+    db.commit()
+
+    for node in db.neighbors(task, edge_label="LED_TO"):
+        print(node["content"])
+```
+
+Now your AI can recall *why* decisions were made, not just what was said.
+
+### 2. Python property graph
+
+For a minimal graph API example:
 
 ```python
 import liel
@@ -72,7 +103,7 @@ For the Python API, transactions, QueryBuilder, traversal, and examples:
 - [Quickstart example](https://github.com/hy-token/liel/blob/main/examples/01_quickstart.py)
 - [Examples directory](https://github.com/hy-token/liel/tree/main/examples)
 
-### 2. Claude + MCP project memory
+### 3. Claude + MCP project memory
 
 `liel[mcp]` exposes one official MCP surface for AI memory:
 
@@ -176,7 +207,7 @@ If you are contributing or need a source build, see:
 
 ## What It Is
 
-`liel` is a single-file, embedded property graph for local memory and relationship-centric workflows.
+`liel` is a single-file external-brain substrate for local memory and relationship-centric AI workflows.
 
 It is built around a few deliberate choices:
 
@@ -185,12 +216,25 @@ It is built around a few deliberate choices:
 - local persistence instead of cloud-managed infrastructure
 - a small Rust core with a Python-first interface
 
-This makes it a good fit for tools that need durable, inspectable memory without adding database operations overhead.
+Internally this is implemented as a property graph, but the product promise is higher-level: durable, inspectable memory that an LLM or local agent can carry between sessions.
 
 For the feature surface and file format:
 
+- [Why liel](https://github.com/hy-token/liel/blob/main/docs/why-liel.md)
 - [Feature list](https://github.com/hy-token/liel/blob/main/docs/reference/features.md)
 - [Format spec](https://github.com/hy-token/liel/blob/main/docs/reference/format-spec.md)
+
+## How this differs from RAG
+
+RAG retrieves similar text chunks. `liel` stores and traverses relationships between entities, decisions, tasks, sources, files, and tool results.
+
+Use RAG when your main problem is finding relevant passages. Use `liel` when your AI tool needs durable memory that can answer relationship-centric questions like:
+
+- Which decision led to this task?
+- What source supported that claim?
+- Which files, tool calls, and follow-up tasks are connected?
+
+`liel` is not a retrieval system. It is a persistent memory substrate for local AI workflows.
 
 ---
 
@@ -247,6 +291,8 @@ More detailed comparisons and non-goals:
 - no full-text engine, query language, or property index in the current product shape
 - Python API and MCP integration first, with the Rust core kept small
 
+That narrowness comes from the product framing: `liel` is trying to be a portable external brain for local AI systems, not a general-purpose graph database platform.
+
 This is what keeps the system simple and portable, but it also defines where it is and is not comfortable to use.
 
 Read these before using `liel` as durable application state:
@@ -261,6 +307,7 @@ Read these before using `liel` as durable application state:
 The PyPI source distribution is intentionally small and does not include the full documentation tree or example scripts. Use the GitHub repository for:
 
 - [Documentation index](https://github.com/hy-token/liel/blob/main/docs/index.md)
+- [Why liel](https://github.com/hy-token/liel/blob/main/docs/why-liel.md)
 - [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md)
 - [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md)
 - [Reference](https://github.com/hy-token/liel/blob/main/docs/reference/index.md)

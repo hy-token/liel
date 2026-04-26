@@ -1,6 +1,6 @@
 # Product trade-offs (what we do, what we do not, and why)
 
-`liel` is a graph database that prioritises **single-file persistence, embeddability, and minimal dependencies**. As a result, expectations carried over from a general-purpose or server-style graph database will not always hold.
+`liel` is a **portable external brain for LLM workflows** built on top of a single-file graph storage engine. It prioritises **single-file persistence, local portability, and minimal dependencies**. As a result, expectations carried over from a general-purpose or server-style graph database will not always hold.
 
 This page is the canonical record of liel's **deliberate non-goals**, written in a uniform five-point template:
 
@@ -16,8 +16,9 @@ The decisions below — especially everything in §6 — are **frozen**. Anythin
 
 ## 1. Core value (what liel does)
 
-- Persists a property graph (nodes/edges with labels and arbitrary properties) into a **single `.liel` file** or `:memory:`, as an embedded library.
+- Provides a durable, portable external brain for AI tools by persisting graph memory into a **single `.liel` file** or `:memory:`.
 - **Rust core + Python bindings (PyO3)**. No DB server process.
+- Internally uses a property graph model (nodes/edges with labels and arbitrary properties) as the memory substrate.
 - CRUD, adjacency lists, BFS / DFS, unweighted shortest paths, QueryBuilder, `merge_edge`, `vacuum`, explicit `commit` / `rollback`.
 - Minimal runtime dependencies. The Rust core depends on essentially `pyo3` only.
 
@@ -231,6 +232,52 @@ Performance guidance now lives next to the APIs that trigger it: user-facing loa
   - More complex than the in-house LRU and harder to reason about for fsync semantics.
 - **Why chosen:** Explicit read/write is consistent across platforms and makes WAL ordering straightforward to write.
 - **Trade-off:** Read-heavy workloads cannot benefit from OS-cache mmap optimization. Possibly revisited later for a read-only path.
+
+### 5.5 Nested transactions are forbidden (re-entering `transaction()` errors, implemented)
+
+- **Current choice:** A transaction is implicitly begun right after `open()`. Explicit transactions are exposed as **Rust-level `GraphDB::transaction()`** returning a `TransactionGuard` and as Python's `with db.transaction()`; both shapes auto-commit on success and auto-rollback on `Drop` / exception.  **Re-entering `transaction()` while one is already active raises `LielError::TransactionError("transaction already active")`** (`TransactionError` on the Python side).  The Rust guard borrows `&mut GraphDB` for its full lifetime so nesting is also rejected by the borrow checker — defence in depth.  As a related rule, **calling `vacuum()` inside an explicit transaction is rejected** with `TransactionError`: vacuum forces an internal `commit()` and would otherwise silently flush the surrounding transaction's staged work.
+- **Considered alternatives:**
+  - (a) SQL-style savepoints (inner rollback unwinds partially).
+  - (b) Flat nesting (only the outer scope commits; inner commits are no-ops).
+  - (c) Forbid nesting (re-entry is an immediate error).
+- **Why rejected:**
+  - (a) would require a savepoint marker in the WAL, conflicting head-on with §5.2's "page-grained, single-path recovery".
+  - (b) silently swallows commit-timing bugs, which works against an embedded DB's explicit-durability model.
+- **Why chosen:** Given §5.1 (single writer), a single-scope transaction model is sufficient. Forbidding re-entry surfaces caller bugs (confusion about which `rollback` unwinds what) at the first offence.
+- **Trade-off:** Library code that wants a narrow commit unit inside a wider caller transaction must be designed around that outer scope. If savepoints ever become necessary, they will be introduced together with a WAL major bump.
+
+### 5.6 Vacuum is crash-safe via copy-on-write + atomic rename (implemented)
+
+- **Current choice:** File-backed `vacuum()` uses **(β) copy-on-write + atomic rename** (`src/graph/vacuum.rs::vacuum_to_tmp_and_rename`).  Writes a sibling `<basename>.liel.tmp` that contains **live node/edge slots together with a compacted property region**, then `commit()` (WAL fsync → data fsync) followed by `atomic_replace` (POSIX `rename` + parent directory fsync, or Windows `MoveFileExW(REPLACE_EXISTING | WRITE_THROUGH)`).  `:memory:` databases fall back to the in-place algorithm because there is no on-disk state to crash-corrupt.
+  - **Stale `.liel.tmp` policy:** `open()` **unconditionally `unlink`s** any sibling `.tmp`. Under §5.1's single-writer guarantee, a concurrent vacuum is not a possibility we have to protect against.
+  - **Out of disk:** A dedicated free-space pre-check (`statvfs(2)` / `GetDiskFreeSpaceExW`) is **not implemented**.  An earlier draft of this decision called for one, but it conflicts with the ZEN principle "start small, keep it local"; we deliver the same quality through **the OS surfacing `ENOSPC` on first write → the next `open()`'s sweep unconditionally removes the half-finished `.tmp`**.  After a successful rename a crash is a no-op (the new `.liel` is already atomic-replaced), so the only window that can leave a half-finished tmp is the brief stretch before `commit()` — which the open-time sweep already covers.  If real-world feedback eventually demands a pre-check we can add it later via bare FFI (the same pattern as `src/storage/lock.rs`); doing so would not introduce any new external crate.
+- **Considered alternatives:**
+  - (α) Add a vacuum entry type to the WAL and use the existing WAL as the crash-consistent vehicle.
+  - (β) Copy-on-write + atomic rename (above).
+  - (γ) Two-phase marker page toggling between old and new slots.
+- **Why rejected:**
+  - (α) changes the WAL format (major bump) and breaks §5.2's "page-grained, single-path recovery" invariant.
+  - (γ) still needs a separate atomic mechanism for slot updates beyond the marker itself.
+- **Why chosen:** Does not touch the WAL format. Aligns with the natural embedded-DB idiom of "write a new file next to it and swap in place". A crash before `rename` leaves the old `.liel` intact; cleanup is bounded to `open`'s `.tmp` sweep.
+- **Trade-off:** Disk usage temporarily doubles during vacuum. Network filesystems / sync folders still follow §5.1's recommendation (centralise to a single process).
+- **Invariant:** Vacuum **preserves node and edge IDs**. `Pager::next_node_id` / `next_edge_id` are unchanged. Application-side caches and external references stay valid across a vacuum. See [format-spec.md §7](../reference/format-spec.md) for the same invariant.
+- **Fault-injection mechanism:** Compiling with the `test-fault-injection` Cargo feature enables `src/graph/fault_inject.rs::crash_at`, which reads `LIEL_VACUUM_CRASH_AT=<name>` and `_exit(1)`s at the matching named injection point.  With the feature off (the default for release builds and ordinary `cargo test`), `crash_at` is `#[inline(always)]` no-op the linker drops; release wheels carry zero injection plumbing.  Python tests build with `maturin develop --features pyo3/extension-module,test-fault-injection` and drive the crash via `fork` + `_exit` (see `tests/python/test_vacuum_crash_safety.py`).
+- **Implementation order vs B2:** **C1 landed before B2 (the Rust `transaction()` RAII guard).** C1 was the heavier of the two (cross-platform rename, fault injection, recovery tests) with less predictable lead time; B2 is purely an additive API change that can ride on top of the new vacuum and remains the next ticket.
+
+### 5.7 Mutex poison policy is scope-dependent
+
+- **Current choice:** Different policies for different scopes.
+  - The **`open_files` registry** in `src/db.rs` recovers via `unwrap_or_else(|p| p.into_inner())`.
+  - The **`PyGraphDB` inner `Mutex<Option<GraphDB>>`** in `src/python/types.rs` surfaces `PyRuntimeError("...Open a new GraphDB connection.")` whenever the lock is poisoned.
+- **Considered alternatives:**
+  - (a) Recover everywhere via `into_inner`.
+  - (b) Fail everywhere on poison.
+  - (c) Split the policy by scope (chosen).
+- **Why rejected:**
+  - (a) would let CRUD continue after a panic that may have left dirty pages half-updated — a perfect setup for silent corruption.
+  - (b) would force the registry's `Drop` to fail-handle as well, complicating teardown for a registry whose worst poisoned outcome is a spurious `AlreadyOpen` warning.
+- **Why chosen:** The registry only tracks "is this path in-process open" — a poisoned registry can over-report `AlreadyOpen` but never under-report it, so data integrity is unaffected. The graph mutex, by contrast, may have been held during a CRUD panic, so forcing the caller to reopen is the only safe answer.
+- **Trade-off:** Callers see a uniform "drop the handle and reopen" rule, but maintainers must remember the registry behaves differently — the comment in `db.rs::open` documents the split inline.
 
 ---
 

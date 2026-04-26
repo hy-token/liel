@@ -1,0 +1,46 @@
+[package]
+name = "liel"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.74"
+description = "SQLite-like single-file embedded Property Graph database"
+license = "MIT"
+readme = "README.md"
+authors = ["hy-token <51951093+hy-token@users.noreply.github.com>"]
+homepage = "https://github.com/hy-token/liel"
+repository = "https://github.com/hy-token/liel"
+documentation = "https://docs.rs/liel"
+keywords = ["graph", "database", "embedded", "property-graph"]
+categories = ["database", "data-structures"]
+
+[lib]
+name = "liel"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.24", features = ["abi3-py39"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+# `extension-module` is only enabled when building the Python extension via
+# maturin (see `[tool.maturin] features` in `pyproject.toml`). Keeping it off
+# by default lets `cargo test` / `cargo clippy` link libpython normally, which
+# matters on macOS where a plain test binary cannot rely on `dlopen`-time
+# symbol resolution.
+#
+# `test-fault-injection` enables the `vacuum_crash_point` hooks (gated by
+# `#[cfg(feature = "test-fault-injection")]`) inside `src/graph/vacuum.rs`.
+# When compiled in, the hooks read `LIEL_VACUUM_CRASH_AT` to decide whether
+# to invoke the libc `_exit(1)` symbol via a bare `extern "C"` declaration
+# (no `libc` crate dependency — see `src/graph/fault_inject.rs`), so Python
+# tests can `fork`, set the env var in the child, and observe the resulting
+# on-disk state.  OFF by default — release wheels and ordinary `cargo test`
+# ship with zero injection code in the binary.  CI and the Python
+# crash-safety tests build with `--features test-fault-injection`.
+[features]
+extension-module = ["pyo3/extension-module"]
+test-fault-injection = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("gil-refs"))'] }

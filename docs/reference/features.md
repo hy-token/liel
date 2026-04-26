@@ -13,7 +13,7 @@ The **deliberate non-goals** (with considered alternatives, why-rejected, why-ch
 
 | Item | Detail |
 |---|---|
-| Form factor | Embedded library; no DB server process |
+| Form factor | Portable external-brain library; no DB server process |
 | Persistence | **Single file** `.liel` (or `:memory:`) |
 | Model | **Property graph** (nodes and edges with labels and properties) |
 | Dependencies | Rust core kept minimal; no external service required at runtime |
@@ -88,10 +88,12 @@ The **deliberate non-goals** (with considered alternatives, why-rejected, why-ch
 
 | Feature | Description |
 |---|---|
-| `vacuum()` | Compact the property region |
+| `vacuum()` | Compact the property region (crash-safe via copy-on-write + atomic rename) |
 | `clear()` | Fully reset the database to an empty state, discard dirty pages, and reset ID counters |
 | `repair_adjacency()` | Rebuild node adjacency heads, degree counters, and edge next-pointers from the live edge set |
 | `info()` | Read metadata and statistics |
+
+`vacuum()` on a file-backed database operates as a copy-on-write rewrite ([product-tradeoffs.md §5.6](../design/product-tradeoffs.md)): a sibling `<file>.liel.tmp` is built, fsynced, and atomically renamed over the live file.  **A crash mid-vacuum leaves the original file intact**, and the next `liel.open()` reclaims any leftover `.tmp` on its own.  `:memory:` databases fall back to the original in-place algorithm (there is nothing to crash-corrupt).  The only caveat is that disk usage temporarily peaks at 2× while vacuum runs.
 | `merge_from(other, *, node_key=None, edge_strategy="append", on_node_conflict="keep_dst")` | Import all nodes and edges from another `GraphDB`. IDs are remapped automatically (no file-format change). With `node_key`, an existing node can be reused based on a property key; with `edge_strategy="idempotent"`, edges are deduplicated like `merge_edge`. The returned `MergeReport` contains the src→dst ID map and per-class counts. |
 
 ---
@@ -128,6 +130,7 @@ The reasoning ("why not, considered alternatives, why rejected, why chosen") is 
 - Weighted shortest paths (Dijkstra etc.)
 - Undirected-only graph model
 - Property index
+- Standard reserved metadata keys (creation time, update time, source, session); these may be added later, but no metadata convention is enforced today
 - Full-text search and aggregation engines
 - Visualization API in core
 - JSON export/import in core

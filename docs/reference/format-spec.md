@@ -448,3 +448,22 @@ WAL policy:
 - On startup, if `wal_length > 0` we roll forward to recover (any entry that fails CRC truncates recovery there).
 - A 1-byte change still writes 4 KiB, but this is acceptable for the pre-release period.
 - If a single transaction would exceed the WAL reservation (4 MiB), `commit()` returns a `TransactionError` (`LielError::WalOverflow` on the Rust side). `Wal::write_and_commit` computes the total bytes before writing and returns the error while leaving dirty pages in place if `WAL_RESERVED` would be exceeded. The caller should split the transaction and retry.
+
+---
+
+## 7. Adjacency-list and vacuum invariants
+
+This section is not about byte layouts but about **invariants that any implementation reading or writing the format must uphold**. We list them here so higher layers don't break semantics that callers already rely on.
+
+### 7.1 Adjacency-list traversal order
+
+- The singly-linked lists anchored at `NodeSlot.first_out_edge` / `first_in_edge` are built by **head-insertion**. Therefore `out_edges` / `in_edges` / `neighbors` / `bfs` / `dfs` return edges in **reverse insertion order**.
+- This order is a stable, observable property of the format, but it is **not sorted by value, ID, or label**. Callers that need a specific order must sort the result themselves.
+- Any future change that introduces a different order must keep the current default and opt-in through an explicit parameter (e.g. `neighbors(n, order=...)`). See [product-tradeoffs.md §5](../design/product-tradeoffs.md) for the rationale and `python/liel/liel.pyi` for API docstrings.
+
+### 7.2 Vacuum invariants
+
+- `vacuum` **preserves node and edge IDs**. `FileHeader.next_node_id` / `next_edge_id` are unchanged. Application-side caches and external ID references remain valid across a vacuum.
+- `vacuum` does not modify `FileHeader.magic`, `version_major`, `version_minor`, `page_size`, or `wal_offset`.
+- `vacuum` **does change** absolute blob offsets (`NodeSlot.prop_offset`, `label_offset`, and similar fields on edges) because property and label blobs are repacked. External code must reference data by ID, never by cached blob offset.
+- The 0.3 copy-on-write + atomic-rename variant (see [product-tradeoffs.md §5.6](../design/product-tradeoffs.md)) keeps the old `.liel` intact if the process is killed mid-vacuum; the next `open()` unconditionally removes any stale `.liel.tmp`. The new file's format is fully compatible with the previous layout, and the ID-preservation invariant above continues to hold.

@@ -1,6 +1,6 @@
 # Design (philosophy and trade-offs)
 
-This section freezes what **liel** aims for and, just as importantly, what it deliberately does not do.
+This section freezes what **liel** aims for as a portable external brain for LLM workflows and, just as importantly, what it deliberately does not do.
 The byte-level format and reliability contract live under [Behavior and specifications](../reference/index.md), while API-level operational guidance lives next to the relevant interfaces in the guide.
 
 | Document | Content |
