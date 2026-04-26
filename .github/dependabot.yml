@@ -9,6 +9,14 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # PyO3 upgrades require deliberate binding API migration. Keep release
+      # builds on the pinned version until that work is done deliberately.
+      - dependency-name: pyo3
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
     groups:
       rust-deps:
         patterns:

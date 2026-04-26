@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-26
+
+### Fixed
+
+- Ignore Dependabot PyO3 version bumps until the Python bindings are migrated
+  deliberately, preventing automated PRs from reintroducing the PyO3 0.28
+  release-build failure fixed in `0.2.1`.
+
 ## [0.2.1] - 2026-04-26
 
 ### Fixed
