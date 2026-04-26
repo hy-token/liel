@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-04-27
+
+### Changed
+
+- **README** — Positioning as a *structured memory layer* for people using local AI
+  while coding; Architecture (Mermaid) and entry points; Etymology, scope, and
+  Quickstart copy with an updated `liel-demo` output example.
+- **Bundled demo** (`liel-demo` / `python -m liel.demo`) — Suggestions and
+  exploration order are **graph-derived**: dual `SUGGESTS` traversals
+  (preference and place) with **overlap-first** topic ordering, explicit
+  **Graph Traversal** and **Graph Inputs** sections, and readable `why` lines.
+  Example uses Silicon Valley + Palo Alto; optional Ollama still only rephrases
+  the exploration list.
+- **Python connector guide** — `update_node` example uses `city="Austin"` for
+  locale-neutral sample data (`python.md` / `python.ja.md`).
+
+### Added
+
+- `examples/08_demo.py` — Module docstring explaining checkout vs installed wheel.
+- `tests/python/test_demo.py` — Assertions for traversal blocks, graph-derived
+  suggestion line, and exploration provenance.
+
+### Fixed
+
+- **Bundled demo** — Console output is ASCII-only so `python -m liel.demo` does
+  not fail with `UnicodeEncodeError` on Windows (e.g. cp932). README Quickstart
+  example text matches the printed output.
+
 ## [0.2.7] - 2026-04-26
 
 ### Changed
@@ -258,3 +286,4 @@ First public Beta PyPI release.
 [0.1.0]: https://github.com/hy-token/liel/releases/tag/v0.1.0
 [0.1.1]: https://github.com/hy-token/liel/releases/tag/v0.1.1
 [0.2.0]: https://github.com/hy-token/liel/releases/tag/v0.2.0
+[0.2.8]: https://github.com/hy-token/liel/releases/tag/v0.2.8

@@ -93,7 +93,7 @@ print(alice["name"])      # "Alice"
 print(alice.properties)   # {"name": "Alice", "age": 30}
 
 # Update properties (replaces the node's property map)
-db.update_node(alice.id, age=31, city="Tokyo")
+db.update_node(alice.id, age=31, city="Austin")
 
 # Delete (also deletes incident edges)
 db.delete_node(alice.id)

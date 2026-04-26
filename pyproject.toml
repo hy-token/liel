@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "liel"
-version = "0.2.7"
+version = "0.2.8"
 description = "Single-file graph memory for local AI, agents, and Python applications"
 readme = "README.md"
 license = { text = "MIT" }
@@ -35,6 +35,7 @@ classifiers = [
 mcp = ["mcp>=1.0"]
 
 [project.scripts]
+liel-demo = "liel.demo:main"
 liel-mcp = "liel.mcp.__main__:main"
 
 [project.urls]
