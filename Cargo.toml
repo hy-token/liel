@@ -1,6 +1,6 @@
 [package]
 name = "liel"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 rust-version = "1.74"
 description = "SQLite-like single-file embedded Property Graph database"
@@ -18,7 +18,7 @@ name = "liel"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3 = { version = "0.24", features = ["abi3-py39"] }
+pyo3 = { version = "=0.24.2", features = ["abi3-py39"] }
 
 [dev-dependencies]
 tempfile = "3"

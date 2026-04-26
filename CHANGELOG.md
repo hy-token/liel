@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-04-26
+
+### Fixed
+
+- Pin PyO3 to `0.24.2` so release builds do not resolve to newer PyO3 APIs
+  before the bindings have been migrated. This fixes CI failures where
+  `PyObject` was no longer available through the prelude and `#[pymethods]`
+  return conversion became ambiguous during wheel builds.
+
 ## [0.2.0] - 2026-04-26
 
 This batch implements the design improvements collected on the
