@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-04-26
+
+### Changed
+
+- Replace long local CI command blocks in the release procedure with
+  environment-specific runner scripts, avoiding terminal paste corruption and
+  ensuring package smoke tests start from a clean `dist/`.
+- Treat invalid Unix owner PIDs as stale in writer-lock recovery, fixing the
+  Linux/macOS `stale_owner_is_reclaimed` test when the fake PID exceeds
+  `pid_t`'s signed range.
+- Ignore Dependabot lower-bound bumps for maintainer-only Python tooling
+  because local CI already installs the latest versions allowed by
+  `requirements-dev.txt`.
+
 ## [0.2.2] - 2026-04-26
 
 ### Fixed

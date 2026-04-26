@@ -28,6 +28,35 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # requirements-dev.txt intentionally keeps broad lower-bound ranges for
+      # maintainer-only tooling. Local CI installs the latest allowed versions,
+      # so Dependabot lower-bound bumps are noise rather than release inputs.
+      - dependency-name: pytest
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
+      - dependency-name: ruff
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
+      - dependency-name: mkdocs
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
+      - dependency-name: mkdocs-material
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
+      - dependency-name: twine
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
     groups:
       python-dev-deps:
         patterns:

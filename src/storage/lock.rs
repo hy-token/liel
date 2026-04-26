@@ -210,6 +210,7 @@ mod platform {
 #[cfg(unix)]
 mod platform {
     const ESRCH: i32 = 3;
+    const MAX_PID_T: u32 = i32::MAX as u32;
 
     extern "C" {
         fn kill(pid: i32, sig: i32) -> i32;
@@ -232,6 +233,13 @@ mod platform {
     }
 
     pub fn process_is_alive(pid: u32) -> bool {
+        // `kill(2)` takes pid_t (i32 on supported Unix targets). Values
+        // outside that range would wrap during the cast below; notably
+        // u32::MAX becomes -1, which has process-group semantics.
+        if pid == 0 || pid > MAX_PID_T {
+            return false;
+        }
+
         unsafe {
             if kill(pid as i32, 0) == 0 {
                 return true;
