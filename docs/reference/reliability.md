@@ -184,19 +184,26 @@ small and predictable.
 
 ### 6.1 API compatibility
 
-During `0.x`, Python API changes may happen. Public API changes should be
-recorded in the changelog and migration notes.
+`liel` is published as `Development Status :: 4 - Beta` during the current
+`0.x` series. The Beta compatibility surface is Python-first:
 
-As the project approaches a stable release, the priority compatibility surface
-is `liel.open`, basic `GraphDB` CRUD, transactions, traversal, QueryBuilder, and
-the main exception classes.
+- `liel.open`
+- `GraphDB` lifecycle, CRUD, traversal, transaction, QueryBuilder, merge,
+  maintenance, and metadata methods documented in the Python guide
+- `Node`, `Edge`, `NodeQuery`, `EdgeQuery`, `Transaction`, and `MergeReport`
+- the main exception classes under `GraphDBError`
+
+Breaking changes may still happen before `1.0`, but changes to this surface
+should be recorded in the changelog with migration notes. Rust internals and
+helper APIs that are not documented in the Python guide may change more freely.
 
 ### 6.2 On-disk format compatibility
 
 The canonical `.liel` file format lives in [format spec](format-spec.md).
-During `0.x`, breaking format changes may happen. For a stable release, we will
-state how older format versions are read, what exception is returned for
-unsupported versions, and whether a migration tool is provided.
+During `0.x`, breaking format changes may happen, but they must be explicit:
+the format version should be checked, unsupported future formats should fail
+closed, and release notes should say whether existing files remain readable or
+need migration.
 
 An older `liel` should not silently read an unknown future format version.
 Unsupported formats fail closed.

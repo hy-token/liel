@@ -27,9 +27,9 @@ It covers the API rooted at `liel.open()`, exceptions, transactions, the QueryBu
 
 Use the **[MCP server](guide/mcp/index.md)**.
 Enable it with `pip install "liel[mcp]"` and start it with `liel-mcp --path my.liel`.
-The official MCP surface is fixed to eight tools:
+The official MCP surface is fixed to seven tools:
 `liel_overview`, `liel_find`, `liel_explore`, `liel_trace`, `liel_map`,
-`liel_remember`, `liel_remember_batch`, and `liel_connect`.
+`liel_append`, and `liel_merge`.
 The exposed tools are documented in the **[Tools reference](guide/mcp/tools.md)**, and practical agent behavior lives in the **[AI memory playbook](guide/mcp/agent-memory.md)**.
 
 ### Building a connector or ecosystem tool in another language

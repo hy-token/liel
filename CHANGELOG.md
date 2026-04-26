@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-04-26
+
+### Changed
+
+- Restore the publish workflow to GitHub's release-tag dropdown flow instead
+  of requiring a manually typed `release_tag` input.
+- Clarify the Beta contract across release planning, reliability, format, and
+  public documentation so the `Development Status :: 4 - Beta` classifier
+  matches the documented support surface.
+- Align MCP tool lists and single-writer documentation references with the
+  implemented API and design notes.
+
 ## [0.2.6] - 2026-04-26
 
 ### Fixed
@@ -209,7 +221,7 @@ First post-`0.1.0` update. This release tightens graph-memory correctness, resha
 
 ## [0.1.0] - 2026-04-21
 
-First public stable PyPI release.
+First public Beta PyPI release.
 
 ### Added
 

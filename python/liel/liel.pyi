@@ -635,10 +635,11 @@ class GraphDB:
     # ── Transaction control ──────────────────────────────────────────────────
 
     def begin(self) -> None:
-        """Explicitly begin a new transaction (no-op if one is already active).
+        """Compatibility no-op.
 
         A transaction is started implicitly on ``open()``, so calling this is
-        usually unnecessary.
+        unnecessary in the current implementation and never changes database
+        state.
         """
         ...
 

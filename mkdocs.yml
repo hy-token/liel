@@ -70,6 +70,7 @@ nav:
   - Design:
       - Overview: design/index.md
       - Architecture: design/architecture.md
+      - Single-writer guard: design/single-writer-guard.md
       - Product trade-offs: design/product-tradeoffs.md
   - Behavior and specs:
       - Overview: reference/index.md

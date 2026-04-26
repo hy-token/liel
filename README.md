@@ -300,6 +300,12 @@ Read these before using `liel` as durable application state:
 - [Reliability and failure model](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md)
 - [Product trade-offs](https://github.com/hy-token/liel/blob/main/docs/design/product-tradeoffs.md)
 
+`liel` is currently a **Beta** package. The supported contract is the
+Python-first API documented in the guide, plus the single-writer,
+single-file reliability model documented in the reference. `0.x` releases may
+still make breaking changes, but changes to the documented Beta surface should
+be called out in the changelog with migration notes.
+
 ---
 
 ## Documentation

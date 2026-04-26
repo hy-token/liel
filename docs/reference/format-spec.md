@@ -4,7 +4,10 @@ The public English reference for reading and writing `.liel` files at the byte l
 
 For the high-level picture and data model, see **[architecture overview](../design/architecture.md)**. For the rationale of fixed decisions and the explicit product trade-offs, see **[product trade-offs](../design/product-tradeoffs.md)**.
 
-> **format version**: 1.0 (pre-release; breaking changes are still possible).
+> **format version**: 1.0 (`0.x` Beta series). The byte layout is documented
+> as the current contract. Breaking format changes may still happen before
+> `1.0`, but they must be recorded in the changelog and paired with explicit
+> version/fail-closed handling.
 
 ---
 
@@ -446,7 +449,8 @@ WAL policy:
 - Writes first append the full page to the WAL.
 - On `commit()` the affected pages are flushed to their canonical location and the header's `wal_length` is reset to 0. The **on-file region reserved for the WAL** (the 4 MiB at offset 4096) **never moves or changes size**; commit does not shrink the file or relocate the WAL. The next transaction starts again at the beginning of the same region.
 - On startup, if `wal_length > 0` we roll forward to recover (any entry that fails CRC truncates recovery there).
-- A 1-byte change still writes 4 KiB, but this is acceptable for the pre-release period.
+- A 1-byte change still writes 4 KiB. This is an accepted trade-off for the
+  current `0.x` Beta series.
 - If a single transaction would exceed the WAL reservation (4 MiB), `commit()` returns a `TransactionError` (`LielError::WalOverflow` on the Rust side). `Wal::write_and_commit` computes the total bytes before writing and returns the error while leaving dirty pages in place if `WAL_RESERVED` would be exceeded. The caller should split the transaction and retry.
 
 ---

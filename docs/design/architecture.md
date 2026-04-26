@@ -48,6 +48,73 @@ The order — WAL durable first, then data pages — is mandatory. The byte layo
 
 ---
 
+## Query and execution model
+
+`liel` intentionally has no query planner or Cypher-like language. The public
+query model is the Python-first API:
+
+- direct ID lookup for `get_node` / `get_edge`
+- adjacency-list traversal for `out_edges` / `in_edges` / `neighbors`
+- BFS-based traversal for `bfs`, `dfs`, and directed unweighted
+  `shortest_path`
+- QueryBuilder full scans with optional label prefilter and Python
+  `where_` predicate
+
+The in-memory `LabelIndex` is rebuilt on `open()` and maps labels to node IDs to
+reduce node scan candidates. It is not a general property index. Arbitrary
+property predicates remain scans in the current Beta series.
+
+---
+
+## Consistency and concurrency model
+
+The consistency model is deliberately narrow:
+
+- one writer process owns a `.liel` file at a time
+- `open()` starts an implicit transaction
+- `commit()` is the durability boundary
+- `rollback()` discards uncommitted dirty pages
+- `transaction()` provides a commit-on-success / rollback-on-error context
+- leftover complete WAL is replayed on the next `open()`
+- unsafe double-writer opens fail closed with `AlreadyOpenError`
+
+This is a single-file embedded store, not a server database. Multiple peer
+writers, network filesystem semantics, and server-style scheduling are outside
+the contract. The operational details live in
+**[reliability](../reference/reliability.md)** and
+**[single-writer guard](single-writer-guard.md)**.
+
+---
+
+## API contract
+
+The Beta public contract is Python-first. The compatibility surface is
+`liel.open`, the documented `GraphDB` methods, `Node` / `Edge`, QueryBuilder,
+transaction types, merge reports, and the `GraphDBError` exception hierarchy.
+
+The Rust modules are the implementation boundary for the Python package. They
+are kept small and testable, but they are not yet promised as a stable external
+Rust API in the same way as the Python package surface.
+
+---
+
+## AI memory contract
+
+The product promise is not "a complete graph database server." It is a durable,
+portable graph substrate for AI memory:
+
+- store facts, decisions, tasks, sources, files, and tool results as graph
+  records
+- preserve relationships and provenance across sessions
+- expose the same `.liel` file through Python and the optional MCP server
+- support append/merge style memory writes with explicit commit boundaries
+
+`liel` does not provide semantic vector retrieval, embedding search, reasoning
+quality guarantees, or multi-agent concurrent writes by itself. Those belong in
+the application or agent layer above the storage engine.
+
+---
+
 ## Software layers (dependency direction)
 
 Bottom up: **single file** → **storage** (pages, WAL, cache, serialization) → **graph** (CRUD, adjacency lists, traversal) → **query** (QueryBuilder) → **`GraphDB` facade** → **Python bindings**.
