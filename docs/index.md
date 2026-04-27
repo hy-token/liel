@@ -74,7 +74,7 @@ Start with **[format spec](reference/format-spec.md)** for byte layout, **[Pytho
 | **[Guide](guide/index.md)** | Application and tool users using Python or MCP |
 | **[Reference](reference/index.md)** | Users and connector authors checking behavior and file compatibility |
 | **[Design](design/index.md)** | Anyone reviewing architecture, scope, and trade-offs |
-| **[`docs/internal/`](https://github.com/hy-token/liel/blob/main/docs/internal/README.ja.md)** | Maintainers working on implementation, release flow, and internal documentation policy |
+| **[`docs/internal/`](https://github.com/hy-token/liel/tree/main/docs/internal)** | Maintainers working on implementation, release flow, and internal documentation policy |
 
 Primary sources of truth:
 
@@ -83,7 +83,7 @@ Primary sources of truth:
 - The commit/fsync/recovery contract lives in **[reliability](reference/reliability.md)**.
 - AI tool operating rules live in **[AI memory playbook](guide/mcp/agent-memory.md)**.
 - Product decisions and explicit non-goals live in **[product trade-offs](design/product-tradeoffs.md)**.
-- Folder layout and the **document-role SSOT index** (section 7) live in **[documentation taxonomy](https://github.com/hy-token/liel/blob/main/docs/internal/process/documentation-taxonomy.ja.md)** (Japanese; table in §7).
+- Folder layout and the **document-role SSOT index** (section 7) are described in the **[documentation taxonomy](https://github.com/hy-token/liel/blob/main/docs/internal/process/documentation-taxonomy.ja.md)** in the repository (not part of this site build).
 
 ---
 

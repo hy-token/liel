@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.10] - 2026-04-29
+
+### Changed
+
+- **Public English docs** — Neutral wording for maintainer-only repository links
+  (`architecture`, `product-tradeoffs`, `index`, `reference/index`, `format-spec`
+  intro); `docs/index` “internal” row points at the `docs/internal/` tree instead
+  of a single README. Aligns with `mkdocs build --strict` (no `internal/**` in the
+  built site) without locale-specific “site” framing in prose.
+- **Phase 2 roadmap (JA)** — Open question on conventions rephrased to avoid
+  language/region–specific options.
+
 ## [0.2.9] - 2026-04-28
 
 ### Added
@@ -339,3 +351,4 @@ First public Beta PyPI release.
 [0.2.0]: https://github.com/hy-token/liel/releases/tag/v0.2.0
 [0.2.8]: https://github.com/hy-token/liel/releases/tag/v0.2.8
 [0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9
+[0.2.10]: https://github.com/hy-token/liel/releases/tag/v0.2.10
