@@ -194,16 +194,17 @@ small and predictable.
 - the main exception classes under `GraphDBError`
 
 Breaking changes may still happen before `1.0`, but changes to this surface
-should be recorded in the changelog with migration notes. Rust internals and
-helper APIs that are not documented in the Python guide may change more freely.
+should be recorded in the [changelog](https://github.com/hy-token/liel/blob/main/CHANGELOG.md) with migration notes.
+Rust internals and helper APIs that are not documented in the Python guide may
+change more freely.
 
 ### 6.2 On-disk format compatibility
 
 The canonical `.liel` file format lives in [format spec](format-spec.md).
 During `0.x`, breaking format changes may happen, but they must be explicit:
 the format version should be checked, unsupported future formats should fail
-closed, and release notes should say whether existing files remain readable or
-need migration.
+closed, and [release notes](https://github.com/hy-token/liel/blob/main/CHANGELOG.md) should say whether existing
+files remain readable or need migration.
 
 An older `liel` should not silently read an unknown future format version.
 Unsupported formats fail closed.

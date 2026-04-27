@@ -1,13 +1,20 @@
 # On-disk format
 
-The public English reference for reading and writing `.liel` files at the byte level. It is the English counterpart of the maintainer-facing Japanese source, `format-spec.ja.md`; both documents share the same basename and cover the same concern.
+The public English reference for reading and writing `.liel` files at the byte level. This document is the canonical reference for byte layout, format invariants, WAL entry structure, extent chains, and compatibility rules. It is the English counterpart of the maintainer-facing Japanese source, `format-spec.ja.md`; both documents share the same basename and cover the same concern.
 
 For the high-level picture and data model, see **[architecture overview](../design/architecture.md)**. For the rationale of fixed decisions and the explicit product trade-offs, see **[product trade-offs](../design/product-tradeoffs.md)**.
 
+| Need | Source of truth |
+|---|---|
+| Byte layout, WAL format, extent chains, file-format invariants | This document |
+| Why the frozen format decisions exist | [Product trade-offs §6](../design/product-tradeoffs.md#6-file-format-decisions-f-01) |
+| User-facing commit, recovery, and repair behavior | [Reliability and failure model](reliability.md) |
+| Python API behavior and traversal surface | [Python guide](../guide/connectors/python.md) |
+
 > **format version**: 1.0 (`0.x` Beta series). The byte layout is documented
 > as the current contract. Breaking format changes may still happen before
-> `1.0`, but they must be recorded in the changelog and paired with explicit
-> version/fail-closed handling.
+> `1.0`, but they must be recorded in the [changelog](https://github.com/hy-token/liel/blob/main/CHANGELOG.md) and
+> paired with explicit version/fail-closed handling.
 
 ---
 

@@ -79,6 +79,7 @@ nav:
       - Format spec: reference/format-spec.md
   - Use liel:
       - Overview: guide/index.md
+      - Quickstart: guide/quickstart.md
       - APIs and integrations:
           - Overview: guide/connectors/index.md
           - Python: guide/connectors/python.md

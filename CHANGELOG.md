@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-04-28
+
+### Added
+
+- **Phase 2 maintainer roadmap** (`cd2c19b`) — `docs/internal/process/phase2-roadmap.ja.md` for local sharing and aggregation: proposed `liel` CLI shell, conventions, `liel diff` / `liel merge`, later `pack` / provenance / signing, and explicit non-goals.
+
+### Changed
+
+- **README / Quickstart docs** (`0bf952d`) — Shortened the English and
+  Japanese READMEs into a compact entry point: tagline, install/demo command,
+  one agent-memory code example, Mem0/Letta/Zep comparison, Zen, status, and
+  links into docs. Moved the longer demo, Python, and MCP setup paths into
+  `docs/guide/quickstart.md` and `docs/guide/quickstart.ja.md`, and added the
+  quickstart page to the MkDocs navigation.
+- **Architecture docs** (`0bf952d`) — Moved the Mermaid layer diagram out of the
+  README and into `docs/design/architecture.md` /
+  `docs/design/architecture.ja.md`, keeping README short while preserving the
+  system-at-a-glance view.
+- **README local-first introduction** (`6108aba`) — Reframed the English and
+  Japanese README opening around liel as a portable external brain for local AI
+  agents, and added a short local-first section covering code locality, LLM
+  flexibility, offline use, and single-file portability.
+- **Documentation ownership / cross-link cleanup** — Clarified reader paths and
+  primary sources of truth in `docs/index.md` / `docs/index.ja.md`: byte layout
+  belongs to the format spec, Python exceptions to the Python guide,
+  commit/fsync/recovery semantics to reliability, AI-tool operating rules to
+  the AI memory playbook, and product decisions to product trade-offs.
+- **Reference/design docs** — Reduced repeated `commit()` / fsync explanation
+  in feature and architecture pages by linking to the reliability contract, and
+  linked Beta/breaking-change guidance to the changelog.
+- **Product trade-offs** — Marked the mutex poison policy as maintainer-facing
+  and compressed the MCP/AI integration section so it records rationale while
+  delegating operating rules to the AI memory playbook.
+- **Python and MCP docs** — Expanded the Python exception hierarchy with
+  `AlreadyOpenError`, `MergeError`, and `CapacityExceededError`; documented why
+  `get_node()` / `get_edge()` return `None` while mutation methods raise typed
+  not-found errors; and separated MCP JSON error codes from Python exceptions.
+- **Documentation SSOT** (`6ce2a18`) — Section 7 (document roles index) in
+  `documentation-taxonomy.ja.md`; “document role” blurbs on architecture and
+  product trade-offs (EN/JA); Phase 2/3 backlog text deduplicated with pointers
+  to `future-roadmap.ja.md`, `phase2-roadmap.ja.md`, and `product-tradeoffs`
+  §10; `CLAUDE.md` and `docs/index` paths updated; `internal/process/index.ja.md`
+  table clarified.
+
+### Fixed
+
+- **Internal doc links** — `docs/internal/rust-modules.ja.md` related-document
+  links are repo-relative (no local absolute paths). Stray
+  `../../documentation-taxonomy.ja.md` targets corrected to
+  `docs/internal/process/documentation-taxonomy.ja.md`.
+
 ## [0.2.8] - 2026-04-27
 
 ### Changed
@@ -287,3 +338,4 @@ First public Beta PyPI release.
 [0.1.1]: https://github.com/hy-token/liel/releases/tag/v0.1.1
 [0.2.0]: https://github.com/hy-token/liel/releases/tag/v0.2.0
 [0.2.8]: https://github.com/hy-token/liel/releases/tag/v0.2.8
+[0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9

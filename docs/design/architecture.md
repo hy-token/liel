@@ -1,5 +1,7 @@
 # Architecture overview
 
+**Document role:** High-level **system architecture** narrative. Folder layout in this repo: [documentation taxonomy](../internal/process/documentation-taxonomy.ja.md) sections 1–6; **which document is authoritative for what**: **section 7 (SSOT index)** (Japanese). Scope and explicit non-goals: **[product trade-offs](product-tradeoffs.md)**.
+
 `liel` is a **portable external brain** for LLMs and local AI tools. Internally, that memory is persisted as a **property graph** inside a **single file** (`.liel`). There is no server process; you carry the library and the `.liel` file with the workflow that needs the memory.
 
 In other words, "property graph database" describes the storage engine, while "portable external brain" describes the product promise.
@@ -9,6 +11,34 @@ In other words, "property graph database" describes the storage engine, while "p
 - **Durability** — the role of the WAL in making crashes recoverable.
 
 The byte-level layout (offset table) is consolidated in **[format spec](../reference/format-spec.md)**. The decisions that fix the format and the explicit product trade-offs live in **[product trade-offs](product-tradeoffs.md)**.
+
+---
+
+## Architecture at a glance
+
+*Agent memory layer* in the diagram is the **role** that `liel` provides: structured, relationship-centric memory. It is not a separate product sitting above `liel`.
+
+The LLM is optional; the graph is the durable story.
+
+```mermaid
+flowchart TB
+  agent["Layer 1: Local AI Agent\nplanner, reasoning, tool use"]
+  mem["Layer 2: Agent memory layer (concept)\nentities + relations"]
+  subgraph L [Layer 3: liel - three peer surfaces, one engine]
+    direction LR
+    rust["Rust core\ngraph storage, traversal, persistence"]
+    py["Python (PyO3)\ninspection, scripting, integration"]
+    primary["Primary interface\nliel-demo, MCP tools"]
+  end
+  store["Layer 4: single-file graph store: .liel"]
+  agent -->|memory operations| mem
+  mem --> L
+  rust --> store
+  py --> store
+  primary --> store
+```
+
+If your Markdown viewer does not render Mermaid, the same idea in plain text is: **agent -> memory (entities + relations) -> liel (Rust + Python + primary surfaces) -> one `.liel` file**.
 
 ---
 
@@ -42,9 +72,9 @@ Deleting an edge requires **re-linking** the list to splice the edge out (see `s
 
 ## WAL and commit (how durability works)
 
-Writes are first appended to the **Write-Ahead Log** at page granularity. On **commit** the modified pages are then written to the data file and the WAL is cleared. On startup, any leftover WAL is replayed to restore the data pages.
+Writes are first appended to the **Write-Ahead Log** at page granularity. On **commit** the modified pages are made durable and the WAL is cleared. On startup, any leftover complete WAL is replayed to restore the data pages.
 
-The order — WAL durable first, then data pages — is mandatory. The byte layout of WAL entries lives in **[format spec §6](../reference/format-spec.md)**.
+This section is the architectural sketch only. The user-facing durability contract lives in **[reliability](../reference/reliability.md)**, and the byte layout of WAL entries lives in **[format spec §6](../reference/format-spec.md)**.
 
 ---
 

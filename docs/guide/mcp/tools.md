@@ -263,6 +263,10 @@ Use the read tools in this order unless you already know the graph well:
 
 ## Error handling
 
+This section documents the MCP tool-layer JSON error shape. For Python API
+exceptions such as `GraphDBError`, `AlreadyOpenError`, and `MergeError`, see
+the [Python guide](../connectors/python.md#exceptions).
+
 Typical stable error codes include:
 
 - `invalid_json`

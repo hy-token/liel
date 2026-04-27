@@ -370,7 +370,7 @@ count  = db.nodes().label("Person").count()
 
 ## Transactions
 
-A transaction is implicitly active right after `open()`. `begin()` is a **no-op** in the current implementation (kept for compatibility).
+A transaction is implicitly active right after `open()`. `begin()` is a **no-op** in the current implementation and is kept only for compatibility with code that expects an explicit begin call. Use `commit()`, `rollback()`, or `with db.transaction():` to define the actual boundary.
 
 ```python
 # Explicit transaction (begin is optional)
@@ -389,11 +389,16 @@ with db.transaction():
 # normal exit -> auto commit; exception -> auto rollback
 ```
 
-**Crash safety:** if the process exits without `commit()`, the next `open()` finds no Commit entry in the WAL, the changes are discarded, and the database returns to the state immediately after the last commit.
+**Crash safety:** if the process exits without `commit()`, the next `open()` discards uncommitted changes and returns to the state immediately after the last commit. The fsync/recovery details live in [Reliability and failure model](../../reference/reliability.md).
 
 ---
 
 ## Exceptions
+
+This is the canonical Python exception hierarchy. The stub file
+[`python/liel/liel.pyi`](https://github.com/hy-token/liel/blob/main/python/liel/liel.pyi)
+is the runtime/API mirror; MCP tools expose their own JSON error codes instead
+of these Python classes.
 
 ```python
 liel.GraphDBError         # base class
@@ -401,8 +406,18 @@ liel.NodeNotFoundError    # node does not exist
 liel.EdgeNotFoundError    # edge does not exist
 liel.CorruptedFileError   # file is corrupted
 liel.TransactionError     # transaction violation
+liel.MergeError           # merge_from could not satisfy the requested policy
+liel.CapacityExceededError # file-format capacity limit would be exceeded
+liel.AlreadyOpenError     # another writer handle/process owns this file
+ValueError                # invalid Python argument or closed handle
+RuntimeError              # poisoned internal mutex; reopen the database
 OSError                  # file I/O error from the operating system
 ```
+
+Read methods are intentionally nullable: `get_node()` and `get_edge()` return
+`None` for a missing ID so lookup code can branch naturally. Mutation methods
+raise typed not-found errors because a missing target means the requested state
+change did not happen.
 
 ```python
 try:

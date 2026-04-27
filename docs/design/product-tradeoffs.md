@@ -10,6 +10,8 @@ This page is the canonical record of liel's **deliberate non-goals**, written in
 - **Why chosen** — why the current shape is the one we ship.
 - **Trade-off** — what we give up by making this choice.
 
+**Document role:** Canonical **product design** decisions (non-goals and rationale). **Folder layout** in this repo: [documentation taxonomy](../internal/process/documentation-taxonomy.ja.md) sections 1–6; **which document is authoritative for what**: **section 7 (SSOT index)** (Japanese). On-disk contract: [format spec](../reference/format-spec.md). Maintainer build order and backlog index: [internal process index](https://github.com/hy-token/liel/blob/main/docs/internal/process/index.ja.md).
+
 The decisions below — especially everything in §6 — are **frozen**. Anything in §6 affects file-format compatibility and will not change for any reason short of a major version bump with a migration path.
 
 ---
@@ -264,7 +266,11 @@ Performance guidance now lives next to the APIs that trigger it: user-facing loa
 - **Fault-injection mechanism:** Compiling with the `test-fault-injection` Cargo feature enables `src/graph/fault_inject.rs::crash_at`, which reads `LIEL_VACUUM_CRASH_AT=<name>` and `_exit(1)`s at the matching named injection point.  With the feature off (the default for release builds and ordinary `cargo test`), `crash_at` is `#[inline(always)]` no-op the linker drops; release wheels carry zero injection plumbing.  Python tests build with `maturin develop --features pyo3/extension-module,test-fault-injection` and drive the crash via `fork` + `_exit` (see `tests/python/test_vacuum_crash_safety.py`).
 - **Implementation order vs B2:** **C1 landed before B2 (the Rust `transaction()` RAII guard).** C1 was the heavier of the two (cross-platform rename, fault injection, recovery tests) with less predictable lead time; B2 is purely an additive API change that can ride on top of the new vacuum and remains the next ticket.
 
-### 5.7 Mutex poison policy is scope-dependent
+### 5.7 Mutex poison policy is scope-dependent (maintainer-facing)
+
+This entry records an implementation policy for maintainers. End users only
+need the Python-facing rule: if a database lock is poisoned, drop the handle and
+open a new `GraphDB` connection.
 
 - **Current choice:** Different policies for different scopes.
   - The **`open_files` registry** in `src/db.rs` recovers via `unwrap_or_else(|p| p.into_inner())`.
@@ -419,30 +425,25 @@ The byte-level reference of record is the **[format spec](../reference/format-sp
 
 ---
 
-## 9. MCP / AI integration (knowledge graph) recommended patterns {#mcp-knowledge-graph}
+## 9. MCP / AI integration design rationale {#mcp-knowledge-graph}
 
-MCP tool calls multiply quickly. Committing **one fact per tool call**, each with its own disk fsync, hits the weak spots of §5.1 and §5.2 head-on.
+The canonical operating guidance for AI tools lives in the
+[AI memory playbook](../guide/mcp/agent-memory.md). This section records only
+the design reason behind that guidance: MCP tool calls multiply quickly, and
+committing one fact per tool call would put the workload directly on §5.1
+(single writer) and §5.2 (page-grained WAL with fsync).
 
-### 9.1 Recommended
-
-1. **Buffering** — accumulate in memory; **`commit` every N operations or T seconds**.
-2. **Session isolation** — write to **`:memory:`** or a **temporary `.liel`** during a session; merge or replace into the canonical file at the end.
-3. **Tool granularity** — instead of "one edge, one tool", expose **bulk graph-apply** tools to reduce both RPCs and commits.
-4. **Two tiers** — high-frequency in-conversation updates in a hot layer (memory or another store); only confirmed knowledge syncs to `.liel`, infrequently.
-
-### 9.2 Optional guardrails
-
-- Rate-limit `commit` on the MCP server side.
-- A policy split where only an explicit "save" tool runs `commit`, while ordinary tools mutate a buffer.
-
-### 9.3 Do not assume
-
-- Real-time, ultra-high-frequency direct writes against a single `.liel` are not the design centre. Workloads of that shape belong on a different category of system (server DBs, dedicated log stores).
+Therefore MCP-facing integrations should prefer bulk graph writes, stable merge
+keys, natural checkpoint commits, and a single owner process for writes. Do not
+assume real-time, ultra-high-frequency direct writes against one `.liel` file;
+workloads of that shape belong on a server database or dedicated log store.
 
 ---
 
-## 10. Relationship to Phase 2 / 3 (summary)
+## 10. Relationship to Phase 2 / 3 (summary) {#phase-2-3-relation}
 
 The Phase 2 / 3 lists in the maintainer-facing implementation plan are a **backlog of options to consider**, not a chronological "must finish" checklist. Many items there (Cypher / DSL, property index, WASM, JSON in core) clash directly with the trade-offs above, or fit better in a separate layer.
 
 We do not aim to "do all of Phase 2". Where it survives, it should be redefined into sub-milestones that do not break **single file, minimal dependencies** (e.g. read-only WASM only, property index only, JSON helper at the Python layer only).
+
+Per-item status and the reinterpretation table live in [future-roadmap.ja.md](../internal/process/future-roadmap.ja.md) (single source; not duplicated here). The **local sharing** workstream (e.g. `liel diff` / `merge` conventions) is tracked in [phase2-roadmap.ja.md](../internal/process/phase2-roadmap.ja.md).

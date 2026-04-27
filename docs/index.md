@@ -11,19 +11,29 @@ It explains the problem `liel` is designed for: durable AI memory that keeps rel
 
 ---
 
-## Start here
+## Reading paths
 
-### Understanding why this exists
+The docs are split by audience, not by importance:
 
-Read **[Why liel](why-liel.md)**.
-It covers the LLM memory problem, how graph memory differs from text retrieval, and why `liel` uses a single local file.
+| Audience | Start here | What belongs there |
+|---|---|---|
+| End users trying the package | [Quickstart](guide/quickstart.md) | Install, demo, first Python and MCP paths |
+| Python application users | [Python API](guide/connectors/python.md) | Runtime API, exceptions, transactions, performance notes |
+| AI-tool integrators | [MCP guide](guide/mcp/index.md) and [AI memory playbook](guide/mcp/agent-memory.md) | Tool setup and operating rules |
+| Connector / format authors | [Format spec](reference/format-spec.md) | Byte layout and compatibility invariants |
+| Contributors and reviewers | [Architecture](design/architecture.md) and [Product trade-offs](design/product-tradeoffs.md) | System shape and design rationale |
 
-### Python user installing with `pip install liel`
+### Curious first-time reader
 
-Read the **[Python API](guide/connectors/python.md)**.
+Read **[Why liel](why-liel.md)**, then skim **[product trade-offs](design/product-tradeoffs.md)**.
+This path explains the memory problem, the single-file shape, and the deliberate limits before you read APIs.
+
+### Trying it from Python
+
+Start with the README, then read the **[Quickstart](guide/quickstart.md)** and **[Python API](guide/connectors/python.md)**.
 It covers the API rooted at `liel.open()`, exceptions, transactions, the QueryBuilder, and operational guidance for scans and bulk export.
 
-### Integrating with an AI agent such as Claude
+### Connecting an AI agent such as Claude
 
 Use the **[MCP server](guide/mcp/index.md)**.
 Enable it with `pip install "liel[mcp]"` and start it with `liel-mcp --path my.liel`.
@@ -32,11 +42,18 @@ The official MCP surface is fixed to seven tools:
 `liel_append`, and `liel_merge`.
 The exposed tools are documented in the **[Tools reference](guide/mcp/tools.md)**, and practical agent behavior lives in the **[AI memory playbook](guide/mcp/agent-memory.md)**.
 
-### Building a connector or ecosystem tool in another language
+### Contributing code
+
+Read **[CONTRIBUTING.md](https://github.com/hy-token/liel/blob/main/CONTRIBUTING.md)**, then use **[architecture overview](design/architecture.md)** for module shape and **[product trade-offs](design/product-tradeoffs.md)** for scope boundaries.
+
+### Understanding the file format
 
 The **[format spec](reference/format-spec.md)** is the canonical file-layout reference.
-For the high-level picture, see the **[architecture overview](design/architecture.md)**.
-For frozen scope and deliberate non-goals, see **[product trade-offs](design/product-tradeoffs.md)**.
+Read it with **[product trade-offs](design/product-tradeoffs.md)** §6 when you need both byte layout and rationale.
+
+### Building a connector or ecosystem tool in another language
+
+Start with **[format spec](reference/format-spec.md)** for byte layout, **[Python API](guide/connectors/python.md)** for behavior exposed to users, and **[reliability](reference/reliability.md)** for commit and recovery semantics.
 
 ### Want a quick overview
 
@@ -62,8 +79,11 @@ For frozen scope and deliberate non-goals, see **[product trade-offs](design/pro
 Primary sources of truth:
 
 - The byte layout lives in **[format spec](reference/format-spec.md)**.
+- The Python exception hierarchy lives in **[Python API](guide/connectors/python.md#exceptions)**.
+- The commit/fsync/recovery contract lives in **[reliability](reference/reliability.md)**.
+- AI tool operating rules live in **[AI memory playbook](guide/mcp/agent-memory.md)**.
 - Product decisions and explicit non-goals live in **[product trade-offs](design/product-tradeoffs.md)**.
-- Internal documentation policy lives in **[documentation taxonomy](https://github.com/hy-token/liel/blob/main/docs/internal/process/documentation-taxonomy.ja.md)**.
+- Folder layout and the **document-role SSOT index** (section 7) live in **[documentation taxonomy](https://github.com/hy-token/liel/blob/main/docs/internal/process/documentation-taxonomy.ja.md)** (Japanese; table in §7).
 
 ---
 

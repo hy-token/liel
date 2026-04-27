@@ -3,31 +3,70 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/hy-token/liel/blob/main/LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/hy-token/liel/ci.yml?branch=main&label=CI)](https://github.com/hy-token/liel/actions/workflows/ci.yml)
 
-**Structured memory layer for local AI agents** — a single `.liel` file for entities and relationships you can traverse, not a generic graph database or "only" a Python graph library. **Rust** delivers safe, fast on-disk storage; **Python (PyO3)** is the main integration surface for demos, scripts, and tools.
+The name comes from the French *lier* — to connect, to bind.
 
-**For** people who use **local AI agents while coding** — and who care about **long-term memory**, **explicit relationships**, and **reuse** across sessions.
+**A portable external brain for local AI agents** — one file, structured by relationships.
 
-**Runs without API keys (LLM optional).** In about **30 seconds** after `pip install liel`, run **`liel-demo`** or `python -m liel.demo` — the demo ships inside the wheel (no `curl`, no clone). Set `LIEL_DEMO_LLM=1` if you want a local [Ollama](https://ollama.com/) model to phrase the exploration list. Source also lives in [`python/liel/demo.py`](https://github.com/hy-token/liel/blob/main/python/liel/demo.py); the repo wraps it as [`examples/08_demo.py`](https://github.com/hy-token/liel/blob/main/examples/08_demo.py).
+```bash
+pip install liel
+liel-demo
+```
 
-This is not just storage — it changes what your agent remembers and suggests.
+Runs fully local. No API keys required (LLM optional).
 
-`liel` is best understood as a **portable external brain** for relationship-centric AI workflows, not a general-purpose or server-style graph platform. The same data can power a quick script, a bundled demo, or an MCP tool reading one `.liel` file.
+`liel` is a single-file graph memory layer for people using local AI agents while coding. One `.liel` file stores decisions, tasks, sources, files, facts, and the relationships between them, so tools can recall *why* decisions were made, not just what was said.
 
-**Honest scope:** it is a narrow, local durability model (see [reliability](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md)) — not a distributed system and not a substitute for a full production database in every use case.
+The core is a small Rust **property graph** engine with **Python (PyO3)** bindings and optional MCP tools. No server, no cloud, no daemon.
 
-**Entry points (what to open first):** **primary** — `liel-demo` and **`liel[mcp]`** for tools like Claude; **also** — the **Python API** for application code, inspection, and automation. (Details in [Quickstart](#quickstart).)
+## Why Local-First
 
-The core package has **no runtime dependencies**. No external database server, cloud service, or background daemon is required. On supported platforms, `pip install liel` is enough to get started.
+- **Your code stays on your machine.** No API keys, no telemetry, no cloud round-trips.
+- **Works with any LLM.** Local (Ollama, LM Studio) or cloud (Claude, GPT) — only memory stays local.
+- **Offline-friendly.** Memory persists across sessions without network access.
+- **One file, no lock-in.** Copy, commit, archive, and open with any tool that speaks `.liel`.
 
-MCP integration is optional. Install `liel[mcp]` only when you want to expose a `.liel` memory file to an MCP-capable AI tool.
+## Try It
 
-The storage engine is a small Rust **property graph** core with optional MCP on top. If SQLite is the one-file relational store, `liel` is the one-file **external-brain** shape for local agents who think in **relationships, not just rows or chunks**. It is not a cluster graph server; it is a minimal substrate for **agent memory** you can ship in a file.
+```python
+import liel
 
-### Etymology
+with liel.open("agent-memory.liel") as db:
+    task = db.add_node(
+        ["Task"],
+        description="Migrate auth from JWT to server-side sessions",
+    )
+    question = db.add_node(
+        ["OpenQuestion"],
+        content="Use Redis or PostgreSQL for the session store?",
+    )
+    rejected = db.add_node(
+        ["RejectedOption"],
+        option="Redis",
+        reason="Adds another infrastructure dependency",
+    )
+    decision = db.add_node(
+        ["Decision"],
+        content="Use a PostgreSQL session table",
+    )
+    source = db.add_node(["Source"], title="Auth migration notes")
 
-Derived from the French *lier* (to connect / to bind).
+    db.add_edge(task, "RAISED", question)
+    db.add_edge(question, "REJECTED", rejected)
+    db.add_edge(question, "RESOLVED_BY", decision)
+    db.add_edge(decision, "SUPPORTED_BY", source)
+    db.commit()
 
-The name reflects our core focus: transforming linear chat logs into a connected graph of knowledge.
+    for node in db.neighbors(question, edge_label="RESOLVED_BY"):
+        print(node["content"])
+```
+
+Use it as Claude/Cursor project memory via MCP: see the [MCP guide](docs/guide/mcp/index.md).
+
+## Compared To Mem0 / Letta / Zep
+
+`liel` is intentionally lower-level and local-first. It ships as a single `.liel` file with no server, no API keys, and no required vector index. Relationships are explicit edges you write and traverse, not only facts inferred from chat history.
+
+Mem0, Letta, and Zep may be a better fit when you want a hosted service, a full agent runtime, automatic memory extraction, temporal graph intelligence, dashboards, or production-scale context assembly. `liel` is the smaller substrate: local coding agents and project-adjacent tools that need durable, inspectable graph memory they can copy, commit, archive, and open from Python or MCP.
 
 ## The Zen of Liel
 
@@ -36,427 +75,32 @@ The name reflects our core focus: transforming linear chat logs into a connected
 - Minimal dependencies, simple environments.
 - Start small, stay local.
 
-See [Design principles](docs/design/principles.md).
-
----
-
-## Table of contents
-
-- [Quickstart](#quickstart)
-- [Install](#install)
-- [Architecture](#architecture)
-- [What It Is](#what-it-is)
-- [How this differs from RAG](#how-this-differs-from-rag)
-- [When liel fits](#when-liel-fits)
-- [When liel does not fit](#when-liel-does-not-fit)
-- [Design trade-offs](#design-trade-offs)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Quickstart
-
-**Start here (primary first):** run **`liel-demo`** (or `python -m liel.demo`) to see output in seconds; add **`liel[mcp]`** when you want the same file as an MCP memory layer. Use the **Python API** when you are wiring `liel` into code or one-off tools — sections below follow that order.
-
-### 1. See what this actually remembers (in ~10 seconds) (LLM optional)
-
-Example output from **`liel-demo`** (structured like agent memory, not a raw graph dump):
-
-```text
-Running liel demo (no API key required)
-
-=== Agent Memory Demo ===
-
-[Input]
-User: I like coffee in Silicon Valley. (simple example)
-
-[Memory Stored]
-  -> Found preference: Coffee
-  -> Context: Silicon Valley
-  You --LIKES--> coffee
-  You --IN----> Silicon Valley
-  coffee --SUGGESTS--> espresso, single-origin beans, Palo Alto cafes
-  Silicon Valley --SUGGESTS--> Palo Alto cafes
-
-[Graph Inputs]
-  preference: coffee
-  place: Silicon Valley
-  SUGGESTS overlap (preference & place): Palo Alto cafes
-
-[Graph Traversal]
-  db.neighbors(coffee, edge_label='SUGGESTS')
-  -> espresso
-  -> single-origin beans
-  -> Palo Alto cafes
-  db.neighbors(place, edge_label='SUGGESTS')
-  -> Palo Alto cafes
-  ranked: shared suggestions first, then coffee-only suggestions
-
-[Graph-based Suggestion]
-  -> Since you like coffee in Silicon Valley, you might explore: Palo Alto cafes, espresso, single-origin beans.
-     why: combines place + preference via SUGGESTS overlap, not a flat chat log
-
-[Next Prompt Context]
-  -> User prefers coffee in Silicon Valley - bias future replies toward graph-linked topics: Palo Alto cafes, espresso, single-origin beans.
-  -> Exploration list: Palo Alto cafes, espresso, single-origin beans
-      [graph-derived from SUGGESTS (coffee and place, overlap first) - no LLM called]
-  -> (Paste into your agent prompt when you want this memory to steer the reply.)
-
-Demo completed successfully
-```
-
-Fastest path (bundled in the package):
-
-```bash
-pip install liel
-# option 1 — console script (requires install scripts on PATH, e.g. venv `Scripts/` or pipx)
-liel-demo
-```
-
-Always works with the interpreter you used for `pip` (no reliance on PATH scripts):
-
-```bash
-pip install liel
-# option 2 — same as above, most portable
-python -m liel.demo
-```
-
-The rest of **`examples/`** (01, 07, notebooks, …) stays **GitHub-only** to keep the wheel light. From a checkout you can still run `python examples/08_demo.py` (thin wrapper). To download only the module source: `curl -sS -O https://raw.githubusercontent.com/hy-token/liel/main/python/liel/demo.py`.
-
-Optional local LLM for the exploration list only: start Ollama, then `LIEL_DEMO_LLM=1 liel-demo` (override `OLLAMA_HOST` / `OLLAMA_MODEL` if needed). If Ollama is down, the command still finishes using a built-in fallback.
-
-**Quick limits:** one writer per `.liel` file; no semantic/vector search in core; `commit()` defines crash-safe boundaries. Details: [Reliability and failure model](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md).
-
-### 2. LLM memory in one file
-
-Install the core package:
-
-```bash
-pip install liel
-```
-
-Instead of losing context between sessions, store decisions and relationships as a graph:
-
-```python
-import liel
-
-with liel.open("agent-memory.liel") as db:
-    task = db.add_node(["Task"], name="Design AI memory system")
-    decision = db.add_node(
-        ["Decision"],
-        content="Use graph memory instead of text-only retrieval",
-    )
-    source = db.add_node(["Source"], title="Architecture notes")
-
-    db.add_edge(task, "LED_TO", decision)
-    db.add_edge(decision, "SUPPORTED_BY", source)
-    db.commit()
-
-    for node in db.neighbors(task, edge_label="LED_TO"):
-        print(node["content"])
-```
-
-Now your AI can recall *why* decisions were made, not just what was said.
-
-### 3. Python property graph
-
-For a minimal graph API example:
-
-```python
-import liel
-
-with liel.open(":memory:") as db:
-    alice = db.add_node(["Person"], name="Alice")
-    bob = db.add_node(["Person"], name="Bob")
-    db.add_edge(alice, "KNOWS", bob, since=2020)
-    db.commit()
-
-    print(db.neighbors(alice, edge_label="KNOWS")[0]["name"])  # Bob
-```
-
-For the Python API, transactions, QueryBuilder, traversal, and examples:
-
-- [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md)
-- [Bundled demo (`liel-demo`)](https://github.com/hy-token/liel/blob/main/python/liel/demo.py)
-- [Quickstart example](https://github.com/hy-token/liel/blob/main/examples/01_quickstart.py)
-- [Examples directory](https://github.com/hy-token/liel/tree/main/examples)
-
-### 4. Claude + MCP project memory
-
-`liel[mcp]` exposes one official MCP surface for AI memory:
-
-- `liel_overview`
-- `liel_find`
-- `liel_explore`
-- `liel_trace`
-- `liel_map`
-- `liel_append`
-- `liel_merge`
-
-**Step 1 - Install**
-
-```bash
-pip install "liel[mcp]"
-```
-
-**Step 2 - Register the MCP server**
-
-Configuration file locations, approval flow, and setup UX differ between MCP
-clients and change over time. Follow your client's official MCP setup guide,
-then register `liel` with a server definition like this:
-
-```json
-{
-  "mcpServers": {
-    "liel": {
-      "command": "/path/to/python",
-      "args": [
-        "-m",
-        "liel.mcp",
-        "--path",
-        "/path/to/your/project.liel"
-      ]
-    }
-  }
-}
-```
-
-Replace:
-
-- `command` with the Python executable where `liel[mcp]` is installed
-- `--path` with the `.liel` file you want the AI tool to use as durable memory
-
-After registering the server, restart your MCP client and confirm that `liel`
-appears as connected in its MCP management UI.
-
-**Step 3 - Tell Claude to use it**
-
-Add this block to your project's `CLAUDE.md`:
-
-```md
-## Project Memory
-- Use `liel[mcp]` as the long-term memory store for this project when the MCP server is available.
-- At the start of a task, use `liel_overview`, then `liel_find`, then `liel_explore` to restore context before asking the user to repeat it.
-- Save only durable information: confirmed decisions, stable preferences, important facts, open questions, and tasks that should survive the session.
-- Do not save temporary reasoning, speculative ideas, or verbose logs.
-- Reuse existing nodes and link new ones to related nodes. Avoid duplicates.
-- Use `liel_append` when you want guaranteed new records, and `liel_merge` when you want to reuse existing nodes or idempotent edges.
-- Write at meaningful checkpoints (task complete, decision confirmed, session end) - not on every turn.
-```
-
-That's it. Claude will now read and write `agent-memory.liel` autonomously.
-
-For the full setup guide, available tools, and a longer `CLAUDE.md` example:
-
-- [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md)
-- [MCP tools reference](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/tools.md)
-- [AI memory playbook](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/agent-memory.md)
-- [Claude project memory example](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/claude-memory.md)
-
----
-
-## Install
-
-Install the dependency-free core package:
-
-```bash
-pip install liel
-```
-
-Install the optional MCP integration only when you want an MCP-capable AI tool to use a `.liel` file as external memory:
-
-```bash
-pip install "liel[mcp]"
-```
-
-**Platform support**
-
-- OS: Linux, macOS, Windows
-- Architecture: x86_64 first, arm64 where practical
-- Python: **3.9 or newer**
-
-This installs prebuilt wheels for supported platforms. **Rust is not required** at install time.
-
-If you are contributing or need a source build, see:
-
-- [Contributing guide](https://github.com/hy-token/liel/blob/main/CONTRIBUTING.md)
-
----
-
-## Architecture
-
-*Agent memory layer* in the diagram is the **role** that `liel` provides (structured, relationship-centric memory). It is **not** a separate product sitting above `liel` — the two labels describe one stack.
-
-The LLM is optional; the graph is the durable story.
-
-```mermaid
-flowchart TB
-  agent["Layer 1: Local AI Agent\nplanner, reasoning, tool use"]
-  mem["Layer 2: Agent memory layer (concept)\nentities + relations"]
-  subgraph L [Layer 3: liel - three peer surfaces, one engine]
-    direction LR
-    rust["Rust core\ngraph storage, traversal, persistence"]
-    py["Python (PyO3)\ninspection, scripting, integration"]
-    primary["Primary interface\nliel-demo, MCP tools"]
-  end
-  store["Layer 4: single-file graph store: .liel"]
-  agent -->|memory operations| mem
-  mem --> L
-  rust --> store
-  py --> store
-  primary --> store
-```
-
-If your Markdown viewer does not render the diagram, the same idea in plain text: **agent → memory (entities + relations) → liel (Rust + Python + primary surfaces) → one `.liel` file**.
-
----
-
-## What It Is
-
-`liel` is a single-file external-brain substrate for local memory and relationship-centric AI workflows.
-
-It is built around a few deliberate choices:
-
-- one portable `.liel` file instead of a server
-- explicit graph relationships instead of text-only memory
-- local persistence instead of cloud-managed infrastructure
-- a small Rust core with a Python-first interface
-
-Internally this is implemented as a property graph, but the product promise is higher-level: durable, inspectable memory that an LLM or local agent can carry between sessions.
-
-For the feature surface and file format:
-
-- [Why liel](https://github.com/hy-token/liel/blob/main/docs/why-liel.md)
-- [Feature list](https://github.com/hy-token/liel/blob/main/docs/reference/features.md)
-- [Format spec](https://github.com/hy-token/liel/blob/main/docs/reference/format-spec.md)
-
-## How this differs from RAG
-
-**Why this exists (what it is not for alone):** storing graphs in a **relational** database is clunky; **vector / RAG-style** systems emphasize similarity more than hand-authored relationships; a **plain chat log** has no graph structure. `liel` is for the case where you want **named entities, edges, and traversal** in one local file.
-
-RAG retrieves similar text chunks. `liel` stores and traverses relationships between entities, decisions, tasks, sources, files, and tool results.
-
-Use RAG when your main problem is finding relevant passages. Use `liel` when your AI tool needs durable memory that can answer relationship-centric questions like:
-
-- Which decision led to this task?
-- What source supported that claim?
-- Which files, tool calls, and follow-up tasks are connected?
-
-`liel` is not a retrieval system. It is a persistent memory substrate for local AI workflows.
-
----
-
-## When liel fits
-
-**Typical use case:** **durable agent or assistant memory** — preferences, decisions, and relationships that should survive the session, with **graph-shaped** context you can hand to the next prompt or tool.
-
-More generally, use `liel` when:
-
-- you want local AI memory as a file, not a service
-- relationships between entities matter
-- you want decisions, facts, sources, tasks, and tool outputs to survive across sessions
-- you want graph traversal without deploying a separate database server
-- you want something easy to copy, back up, inspect, and archive
-
-Common good fits:
-
-- project memory for coding assistants
-- local agent memory
-- personal or team knowledge graphs
-- MCP-backed memory for AI tools
-- lightweight provenance-aware tool result stores
-
-Examples and usage patterns:
-
-- [Examples](https://github.com/hy-token/liel/tree/main/examples)
-- [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md)
-- [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md)
-
----
-
-## When liel does not fit
-
-`liel` is not the right tool when your primary need is:
-
-- semantic similarity search over text
-- full-text search or document retrieval as the main access pattern
-- large-scale **analytics** or **OLAP**-style graph reporting as the main workload
-- very large graph workloads with heavy concurrent writes
-- server-style multi-user mutation
-- SQL-centric graph querying over an existing relational system
-
-In those cases, a vector database, search engine, PostgreSQL recursive queries, DuckDB graph extensions, or a server-backed graph database may fit better.
-
-More detailed comparisons and non-goals:
-
-- [Product trade-offs](https://github.com/hy-token/liel/blob/main/docs/design/product-tradeoffs.md)
-
----
-
-## Design trade-offs
-
-`liel` is intentionally narrow. The main trade-offs are:
-
-- single-writer design rather than concurrent peer-to-peer mutation
-- page-level WAL for durability, not ultra-high-frequency tiny commits
-- no full-text engine, query language, or property index in the current product shape
-- Python API and MCP integration first, with the Rust core kept small
-
-That narrowness comes from the product framing: `liel` is trying to be a portable external brain for local AI systems, not a general-purpose graph database platform.
-
-This is what keeps the system simple and portable, but it also defines where it is and is not comfortable to use.
-
-Read these before using `liel` as durable application state:
-
-- [Reliability and failure model](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md)
-- [Product trade-offs](https://github.com/hy-token/liel/blob/main/docs/design/product-tradeoffs.md)
-
-`liel` is currently a **Beta** package. The supported contract is the
-Python-first API documented in the guide, plus the single-writer,
-single-file reliability model documented in the reference. `0.x` releases may
-still make breaking changes, but changes to the documented Beta surface should
-be called out in the changelog with migration notes.
-
-The project is **open source** with **CI** on the default branch; local checks in [Contributing](#contributing) mirror what runs in the repo. The demo has an **Ollama fallback** when a local model is not available so runs stay reproducible.
-
-**Feedback:** try **`liel-demo`**, then [open an issue](https://github.com/hy-token/liel/issues) if the memory model, MCP surface, or file format should evolve — especially what breaks in real agent workflows. `0.x` is a good time to **challenge assumptions**; breaking API changes are fine if they are called out in the changelog.
-
----
-
 ## Documentation
 
-The PyPI source distribution is intentionally small and does not include the full documentation tree or example scripts. Use the GitHub repository for:
+- [Why liel](docs/why-liel.md) - what it solves and what it does not
+- [Quickstart](docs/guide/quickstart.md) - demo, Python, and MCP paths
+- [Architecture](docs/design/architecture.md) - system layers and the Mermaid diagram
+- [Python guide](docs/guide/connectors/python.md) - API, transactions, traversal
+- [MCP guide](docs/guide/mcp/index.md) - Claude and other MCP-capable tools
+- [Feature list](docs/reference/features.md) - what is provided at a glance
+- [Reliability](docs/reference/reliability.md) - commit semantics, crash recovery, repair
+- [Format spec](docs/reference/format-spec.md) - byte-level `.liel` file format
+- [Product trade-offs](docs/design/product-tradeoffs.md) - what liel does not do, and why
 
-- [Documentation index](https://github.com/hy-token/liel/blob/main/docs/index.md)
-- [Why liel](https://github.com/hy-token/liel/blob/main/docs/why-liel.md)
-- [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md)
-- [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md)
-- [Reference](https://github.com/hy-token/liel/blob/main/docs/reference/index.md)
-- [Design docs](https://github.com/hy-token/liel/blob/main/docs/design/index.md)
-- [Examples](https://github.com/hy-token/liel/tree/main/examples)
-- [Example notebooks](https://github.com/hy-token/liel/tree/main/examples/notebooks)
+## Status
 
----
+`liel` is currently a **Beta** package. The supported contract is the Python-first API plus the single-writer, single-file reliability model. There is no semantic/vector search in core, and `commit()` defines crash-safe boundaries. Breaking changes before `1.0` are tracked in the [changelog](CHANGELOG.md).
 
 ## Contributing
 
-Pull requests and issues are welcome. **Good first step:** run **`liel-demo`** and note anything confusing about output or the memory model. For bug reports, include OS, `liel` version, and a minimal way to reproduce.
+Pull requests and issues are welcome. A good first step is to run `liel-demo` and note anything confusing about the output, memory model, or docs.
 
-- [CONTRIBUTING.md](https://github.com/hy-token/liel/blob/main/CONTRIBUTING.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Local checks:
+## Author
 
-```bash
-cargo fmt
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
-pytest tests/python/
-```
-
----
+Built by Hayato under [`hy-token`](https://github.com/hy-token), a personal namespace for small local-first tools and AI infrastructure experiments.
 
 ## License
 
-[MIT](https://github.com/hy-token/liel/blob/main/LICENSE)
+[MIT](LICENSE)

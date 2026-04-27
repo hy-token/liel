@@ -27,7 +27,7 @@ The **deliberate non-goals** (with considered alternatives, why-rejected, why-ch
 |---|---|
 | `liel.open(path)` | Open a DB by file path or `:memory:` |
 | `close()` / context manager | End the session and release resources |
-| Crash safety | **Page-level WAL** for commit consistency. `commit()` calls `File::sync_all` (fsync) after writing the WAL and again after flushing data pages. As a result, `commit()` throughput is **bounded by disk fsync latency** (typical SSD: a few hundred to a few thousand ops/s). For bulk inserts, group writes inside one `db.transaction()` to reduce the number of fsyncs. See [reliability and failure model](reliability.md) and [format spec §6](format-spec.md#6-wal-write-ahead-log). |
+| Crash safety | **Page-level WAL** for commit consistency. `commit()` is the durability boundary and is limited by disk sync latency; batch bulk inserts with `db.transaction()`. The detailed fsync/recovery contract lives in [reliability and failure model](reliability.md); byte layout lives in [format spec §6](format-spec.md#6-wal-write-ahead-log). |
 
 ---
 
