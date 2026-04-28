@@ -14,12 +14,26 @@ from pathlib import Path
 import liel
 
 
-def _format_result(name: str, elapsed: float, operations: int | None = None) -> str:
+def _format_result(
+    name: str,
+    elapsed: float,
+    count: int,
+    *,
+    count_label: str = "count",
+    operations: int | None = None,
+) -> str:
     """Render a human-friendly benchmark result line."""
+    prefix = f"{name:<20} {count_label}={count:<8} {elapsed:>8.3f}s"
     if operations is None or elapsed == 0:
-        return f"{name:<20} {elapsed:>8.3f}s"
+        return prefix
     throughput = operations / elapsed
-    return f"{name:<20} {elapsed:>8.3f}s  {throughput:>10.1f} ops/s"
+    return f"{prefix}  {throughput:>10.1f} ops/s"
+
+
+def _format_size(size_bytes: int) -> str:
+    """Render file sizes in bytes and a readable binary unit."""
+    size_mib = size_bytes / (1024 * 1024)
+    return f"{size_mib:.2f} MiB ({size_bytes} bytes)"
 
 
 def run_benchmarks(node_count: int, workdir: Path) -> list[str]:
@@ -35,32 +49,38 @@ def run_benchmarks(node_count: int, workdir: Path) -> list[str]:
         nodes = [db.add_node(["Bench"], ordinal=index) for index in range(node_count)]
         db.commit()
         elapsed = time.perf_counter() - start
-        results.append(_format_result("insert_nodes", elapsed, node_count))
+        results.append(_format_result("insert_nodes", elapsed, node_count, operations=node_count))
 
         start = time.perf_counter()
         for index in range(node_count - 1):
             db.add_edge(nodes[index], "NEXT", nodes[index + 1], ordinal=index)
         db.commit()
         elapsed = time.perf_counter() - start
-        results.append(_format_result("insert_edges", elapsed, max(node_count - 1, 0)))
+        edge_count = max(node_count - 1, 0)
+        results.append(_format_result("insert_edges", elapsed, edge_count, operations=edge_count))
 
         midpoint = nodes[node_count // 2]
         start = time.perf_counter()
         db.neighbors(midpoint, edge_label="NEXT")
         elapsed = time.perf_counter() - start
-        results.append(_format_result("neighbors_midpoint", elapsed))
+        results.append(_format_result("neighbors_midpoint", elapsed, 1, count_label="queries"))
 
         start = time.perf_counter()
         db.shortest_path(nodes[0], nodes[-1], edge_label="NEXT")
         elapsed = time.perf_counter() - start
-        results.append(_format_result("shortest_path_full", elapsed))
+        results.append(
+            _format_result("shortest_path_full", elapsed, node_count, count_label="path_nodes")
+        )
 
         start = time.perf_counter()
         records = db.all_nodes_as_records()
         elapsed = time.perf_counter() - start
-        results.append(_format_result("all_nodes_records", elapsed, len(records)))
+        results.append(
+            _format_result("all_nodes_records", elapsed, len(records), operations=len(records))
+        )
 
     results.append(f"database_path         {db_path}")
+    results.append(f"file_size             {_format_size(db_path.stat().st_size)}")
     return results
 
 

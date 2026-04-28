@@ -95,28 +95,33 @@ Install the optional MCP integration only when you want an MCP-capable AI tool t
 pip install "liel[mcp]"
 ```
 
-Register `liel` with your MCP client using a server definition like this:
+Configure your LLM client to start the `liel` MCP server. In Claude Code, edit
+`.mcp.json` in the project root like this:
 
 ```json
 {
   "mcpServers": {
     "liel": {
-      "command": "/path/to/python",
-      "args": [
-        "-m",
-        "liel.mcp",
-        "--path",
-        "/path/to/your/project.liel"
-      ]
+      "type": "stdio",
+      "command": "/absolute/path/to/liel-mcp",
+      "args": ["--path", "/absolute/path/to/your/project.liel"]
     }
   }
 }
 ```
 
-Replace:
+Use the installed `liel-mcp` executable for `command`, and set `--path` to the
+`.liel` file you want the AI tool to use as durable memory. For other LLM/MCP
+clients, use the equivalent MCP server setting with the same command and args.
 
-- `command` with the Python executable where `liel[mcp]` is installed
-- `--path` with the `.liel` file you want the AI tool to use as durable memory
+Do not put `mcpServers` in `.claude/settings.json`; that file is for Claude
+Code settings such as permissions and environment variables.
+
+For first-time setup, `--path` is the clearest option. The target file is
+created automatically if it does not exist yet. Without `--path`, the MCP server
+checks only the startup directory: if no `*.liel` file exists there, it uses
+`./memory.liel`; if one exists, it uses that file; if multiple files exist, it
+prints the candidates and asks you to register the intended file with `--path`.
 
 Then add a project-memory policy to your agent instructions. Start with the
 [AI memory playbook](mcp/agent-memory.md). For a longer Claude-specific

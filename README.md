@@ -25,6 +25,59 @@ The core is a small Rust **property graph** engine with **Python (PyO3)** bindin
 - **Offline-friendly.** Memory persists across sessions without network access.
 - **One file, no lock-in.** Copy, commit, archive, and open with any tool that speaks `.liel`.
 
+## LLM Setup
+
+Use `liel` as project memory through MCP:
+
+```bash
+pip install "liel[mcp]"
+```
+
+Configure your LLM client to start the `liel` MCP server. In Claude Code, edit
+`.mcp.json` in the project root like this:
+
+```json
+{
+  "mcpServers": {
+    "liel": {
+      "type": "stdio",
+      "command": "/absolute/path/to/liel-mcp",
+      "args": ["--path", "/absolute/path/to/agent-memory.liel"]
+    }
+  }
+}
+```
+
+Use the installed `liel-mcp` executable for `command`, and set `--path` to the
+`.liel` file the AI should use as durable memory. For other LLM/MCP clients,
+use the equivalent MCP server setting with the same command and args.
+
+Do not put `mcpServers` in `.claude/settings.json`; that file is for Claude
+Code settings such as permissions and environment variables.
+
+For first-time setup, `--path` is the clearest option. If the file does not
+exist yet, `liel` creates it on first open. Without `--path`, the server checks
+only the startup directory: if no `*.liel` file exists there, it uses
+`./memory.liel`; if one exists, it uses that file; if multiple files exist, it
+prints the candidates and asks you to register the intended file with `--path`
+instead of choosing one silently.
+
+Then add a memory policy to the agent's project instructions. Start with the
+[AI memory playbook](docs/guide/mcp/agent-memory.md), or use the
+[sample `CLAUDE.md`](docs/guide/mcp/samples/CLAUDE.md) as a longer Claude
+template.
+
+## Recommended LLM Memory Pattern
+
+When using `liel` as project memory:
+
+- Always check existing memory before asking the user to repeat context.
+- Save only durable, high-signal information: decisions, preferences, tasks,
+  sources, and important project facts.
+- Do not store temporary reasoning, speculative notes, noisy logs, or every tool result.
+- Write at meaningful checkpoints, not every turn.
+- Use nodes for entities and edges for relationships.
+
 ## Try It
 
 ```python
@@ -59,24 +112,6 @@ with liel.open("agent-memory.liel") as db:
     for node in db.neighbors(question, edge_label="RESOLVED_BY"):
         print(node["content"])
 ```
-
-Use it as Claude/Cursor project memory via MCP: see the [MCP guide](docs/guide/mcp/index.md).
-
-## Recommended LLM Memory Pattern
-
-When using `liel` as project memory:
-
-- Always check existing memory before asking the user to repeat context.
-- Save only durable, high-signal information: decisions, preferences, tasks,
-  sources, and important project facts.
-- Do not store temporary reasoning, speculative notes, noisy logs, or every tool result.
-- Write at meaningful checkpoints, not every turn.
-- Use nodes for entities and edges for relationships.
-
-Start with the [AI memory playbook](docs/guide/mcp/agent-memory.md) for the
-operating pattern, or use the
-[sample `CLAUDE.md`](docs/guide/mcp/samples/CLAUDE.md) as a longer drop-in
-template.
 
 ## Compared To Mem0 / Letta / Zep
 

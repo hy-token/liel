@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import sys
 import types
+import uuid
+from pathlib import Path
 
 import pytest
 
 from liel.mcp import __main__ as mcp_main
-from liel.mcp.server import create_server
+from liel.mcp.server import LielFileDiscoveryError, _discover_liel_file, create_server
 
 
 class _FakeFastMCP:
@@ -102,3 +104,49 @@ def test_cli_main_delegates_to_create_server(monkeypatch):
     mcp_main.main()
 
     assert calls == {"path": "demo.liel", "transport": "sse"}
+
+
+def _discovery_test_dir(name: str) -> Path:
+    path = Path("target") / f"test-mcp-discovery-{name}-{uuid.uuid4().hex}"
+    path.mkdir(parents=True)
+    return path
+
+
+def test_discover_liel_file_uses_single_candidate():
+    test_dir = _discovery_test_dir("single")
+    memory = test_dir / "memory.liel"
+    memory.touch()
+
+    assert _discover_liel_file(test_dir) == str(memory)
+
+
+def test_discover_liel_file_defaults_to_memory_file_when_empty():
+    test_dir = _discovery_test_dir("empty")
+
+    assert _discover_liel_file(test_dir) == str(test_dir / "memory.liel")
+
+
+def test_discover_liel_file_rejects_multiple_candidates():
+    test_dir = _discovery_test_dir("multiple")
+    memory = test_dir / "memory.liel"
+    other = test_dir / "other.liel"
+    memory.touch()
+    other.touch()
+
+    with pytest.raises(LielFileDiscoveryError) as exc_info:
+        _discover_liel_file(test_dir)
+
+    message = str(exc_info.value)
+    assert "Multiple .liel files found in the current directory" in message
+    assert "register it with --path" in message
+    assert memory.resolve().as_posix() in message
+    assert other.resolve().as_posix() in message
+
+
+def test_discover_liel_file_ignores_nested_candidates_when_empty():
+    test_dir = _discovery_test_dir("nested")
+    nested = test_dir / "nested" / "other.liel"
+    nested.parent.mkdir()
+    nested.touch()
+
+    assert _discover_liel_file(test_dir) == str(test_dir / "memory.liel")

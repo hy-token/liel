@@ -54,30 +54,33 @@ liel-mcp
 
 ### 2. Register from your MCP client
 
-Configuration file locations, approval flow, and setup UX vary by client and
-change over time. Follow your client's official MCP setup guide, then register
-`liel` with a server definition like this:
+Configure your LLM client to start the `liel` MCP server. In Claude Code, edit
+`.mcp.json` in the project root like this:
 
 ```json
 {
   "mcpServers": {
     "liel": {
-      "command": "/path/to/python",
-      "args": [
-        "-m",
-        "liel.mcp",
-        "--path",
-        "/path/to/your/project.liel"
-      ]
+      "type": "stdio",
+      "command": "/absolute/path/to/liel-mcp",
+      "args": ["--path", "/absolute/path/to/your/project.liel"]
     }
   }
 }
 ```
 
-Replace:
+Use the installed `liel-mcp` executable for `command`, and set `--path` to the
+`.liel` file you want the client to use as durable memory. For other LLM/MCP
+clients, use the equivalent MCP server setting with the same command and args.
 
-- `command` with the Python executable where `liel[mcp]` is installed
-- `--path` with the `.liel` file you want the client to use as durable memory
+Do not put `mcpServers` in `.claude/settings.json`; that file is for Claude
+Code settings such as permissions and environment variables.
+
+For first-time setup, `--path` is the clearest option. If the file does not
+exist yet, `liel` creates it on first open. If `--path` is omitted, the server
+checks only the startup directory: if no `*.liel` file exists there, it uses
+`./memory.liel`; if one exists, it uses that file; if multiple files exist, it
+prints the candidates and asks you to register the intended file with `--path`.
 
 After registering the server, restart your client and confirm that `liel`
 appears as connected in its MCP management UI.

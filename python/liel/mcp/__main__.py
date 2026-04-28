@@ -41,7 +41,7 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        from liel.mcp.server import create_server
+        from liel.mcp.server import LielFileDiscoveryError, create_server
     except ImportError as exc:
         print(
             f'Error: {exc}\nInstall AI memory MCP support with:  pip install "liel[mcp]"',
@@ -51,6 +51,9 @@ def main() -> None:
 
     try:
         mcp = create_server(path=args.path)
+    except LielFileDiscoveryError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
     except FileNotFoundError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)

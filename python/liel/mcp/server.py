@@ -38,6 +38,10 @@ _MERMAID_LIMIT_DEFAULT = 30
 _INSPECT_SAMPLE_SIZE = 5
 
 
+class LielFileDiscoveryError(RuntimeError):
+    """Raised when --path is omitted and the server cannot pick a file."""
+
+
 def _err(code: str, message: str) -> str:
     return json.dumps(
         {"error": {"code": code, "message": message}},
@@ -64,12 +68,23 @@ def _require_mcp() -> Any:
         ) from exc
 
 
-def _discover_liel_file() -> str:
-    cwd = pathlib.Path.cwd()
-    for p in sorted(cwd.rglob("*.liel")):
-        return str(p)
-    raise FileNotFoundError(
-        "No .liel file found under the current directory. Pass --path explicitly."
+def _discover_liel_file(cwd: pathlib.Path | None = None) -> str:
+    cwd = pathlib.Path.cwd() if cwd is None else cwd
+    candidates = sorted(cwd.glob("*.liel"))
+    if len(candidates) == 1:
+        return str(candidates[0])
+    if not candidates:
+        return str(cwd / "memory.liel")
+
+    candidate_lines = "\n".join(f"  - {p.resolve().as_posix()}" for p in candidates)
+    example = candidates[0].resolve().as_posix()
+    raise LielFileDiscoveryError(
+        "Multiple .liel files found in the current directory.\n"
+        "No file was selected automatically. Choose the memory file you want and "
+        "register it with --path.\n\n"
+        f"Candidates:\n{candidate_lines}\n\n"
+        'Example .mcp.json setting:\n  "args": ["--path", '
+        f'"{example}"]'
     )
 
 

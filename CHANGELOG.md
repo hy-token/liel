@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.12] - 2026-04-29
+
+### Changed
+
+- **LLM setup docs** - Documented Claude Code setup through project-level
+  `.mcp.json`, simplified other LLM/MCP client guidance to the same
+  `command` / `args` shape, and moved the recommended memory pattern into the
+  README entry path.
+- **Benchmark output** - Show item counts for each benchmark row and include the
+  generated `.liel` file size.
+- **Reference docs** - Added benchmark interpretation and practical `.liel` file
+  size notes.
+
+### Fixed
+
+- **MCP startup** - When `--path` is omitted, the server now checks only the
+  startup directory: it uses `./memory.liel` when no direct `*.liel` file exists,
+  uses the single direct candidate when exactly one exists, and reports direct
+  candidates when multiple files are present instead of silently picking one.
+
 ## [0.2.11] - 2026-04-29
 
 ### Changed
