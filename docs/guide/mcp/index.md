@@ -140,12 +140,13 @@ For full parameter specs, see the **[tools reference](tools.md)**.
 
 ## AI memory playbook
 
-For prompt snippets and operating rules for Claude, Codex, and Cursor, see
-**[AI memory playbook](agent-memory.md)**.
+For the recommended LLM memory pattern, prompt snippets, and operating rules
+for Claude, Codex, and Cursor, start with **[AI memory playbook](agent-memory.md)**.
 
 ---
 
-## Claude project memory
+## Claude setup
 
-For a practical `CLAUDE.md` example that uses `liel[mcp]` as durable project
-memory, see **[Claude project memory](claude-memory.md)**.
+For Claude-specific setup notes, see **[Claude setup](claude.md)**.
+For a copyable project-instructions sample, see
+**[sample `CLAUDE.md`](samples/CLAUDE.md)**.

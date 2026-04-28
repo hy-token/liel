@@ -62,6 +62,22 @@ with liel.open("agent-memory.liel") as db:
 
 Use it as Claude/Cursor project memory via MCP: see the [MCP guide](docs/guide/mcp/index.md).
 
+## Recommended LLM Memory Pattern
+
+When using `liel` as project memory:
+
+- Always check existing memory before asking the user to repeat context.
+- Save only durable, high-signal information: decisions, preferences, tasks,
+  sources, and important project facts.
+- Do not store temporary reasoning, speculative notes, noisy logs, or every tool result.
+- Write at meaningful checkpoints, not every turn.
+- Use nodes for entities and edges for relationships.
+
+Start with the [AI memory playbook](docs/guide/mcp/agent-memory.md) for the
+operating pattern, or use the
+[sample `CLAUDE.md`](docs/guide/mcp/samples/CLAUDE.md) as a longer drop-in
+template.
+
 ## Compared To Mem0 / Letta / Zep
 
 `liel` is intentionally lower-level and local-first. It ships as a single `.liel` file with no server, no API keys, and no required vector index. Relationships are explicit edges you write and traverse, not only facts inferred from chat history.
@@ -79,6 +95,8 @@ Mem0, Letta, and Zep may be a better fit when you want a hosted service, a full 
 
 - [Why liel](docs/why-liel.md) - what it solves and what it does not
 - [Quickstart](docs/guide/quickstart.md) - demo, Python, and MCP paths
+- [AI memory playbook](docs/guide/mcp/agent-memory.md) - recommended LLM memory pattern
+- [Sample CLAUDE.md](docs/guide/mcp/samples/CLAUDE.md) - Claude project-instructions template
 - [Architecture](docs/design/architecture.md) - system layers and the Mermaid diagram
 - [Python guide](docs/guide/connectors/python.md) - API, transactions, traversal
 - [MCP guide](docs/guide/mcp/index.md) - Claude and other MCP-capable tools

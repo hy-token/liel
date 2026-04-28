@@ -1,6 +1,41 @@
 # AI memory playbook
 
-This page describes how to use `liel[mcp]` as durable graph memory from AI tools.
+This page is the recommended operating pattern for using `liel[mcp]` as durable
+graph memory from AI tools.
+
+## Which file should I use?
+
+| File | Purpose |
+|---|---|
+| This page | Recommended operating pattern for any LLM |
+| [Claude setup](claude.md) | Claude-specific setup pointer |
+| [Sample `CLAUDE.md`](samples/CLAUDE.md) | Copyable Claude project-instructions sample |
+
+If you only add one rule to an agent prompt, use this:
+
+```md
+Always check existing memory before asking the user to repeat context.
+```
+
+## Start small
+
+For most projects, begin with this policy:
+
+- Save only durable, high-signal information: decisions, preferences, tasks,
+  sources, and important project facts.
+- Do not save temporary reasoning, speculative notes, noisy logs, or every tool result.
+- Read existing memory at the start of a task.
+- Write at meaningful checkpoints, not every turn.
+- Use nodes for entities and edges for relationships.
+
+Useful starter labels:
+
+- `Task`
+- `Decision`
+- `Preference`
+- `Issue`
+- `Module`
+- `Source`
 
 ## Official MCP surface
 

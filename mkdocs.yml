@@ -85,7 +85,9 @@ nav:
           - Python: guide/connectors/python.md
       - MCP (AI integration):
           - Overview & quick start: guide/mcp/index.md
-          - Claude project memory: guide/mcp/claude-memory.md
+          - AI memory playbook: guide/mcp/agent-memory.md
+          - Claude setup: guide/mcp/claude.md
+          - Sample CLAUDE.md: guide/mcp/samples/CLAUDE.md
           - Tools reference: guide/mcp/tools.md
 
 extra:

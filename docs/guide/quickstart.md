@@ -118,7 +118,9 @@ Replace:
 - `command` with the Python executable where `liel[mcp]` is installed
 - `--path` with the `.liel` file you want the AI tool to use as durable memory
 
-Then add a project-memory policy to your agent instructions. For Claude, see the full [MCP guide](mcp/index.md) and [Claude project memory example](mcp/claude-memory.md).
+Then add a project-memory policy to your agent instructions. Start with the
+[AI memory playbook](mcp/agent-memory.md). For a longer Claude-specific
+template, see the [sample `CLAUDE.md`](mcp/samples/CLAUDE.md).
 
 ## Quick limits
 

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.11] - 2026-04-29
+
+### Changed
+
+- **LLM memory docs** (`0b0feb5`) - Promoted the recommended LLM memory pattern
+  into the README and MkDocs navigation; split Claude guidance into a
+  Claude-specific setup page and a copyable `samples/CLAUDE.md`; clarified the
+  role of the AI memory playbook as the general operating pattern.
+
 ## [0.2.10] - 2026-04-29
 
 ### Changed

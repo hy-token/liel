@@ -1,6 +1,9 @@
 """
 liel Agent Memory - external memory for an LLM-style assistant.
 
+For the recommended MCP operating pattern, see:
+https://github.com/hy-token/liel/blob/main/docs/guide/mcp/agent-memory.md
+
 This example models how an agent can store durable context outside the prompt:
 
   Session / UserRequest / AssistantReply / ToolRun / Decision / Observation nodes
