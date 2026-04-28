@@ -63,8 +63,9 @@ prints the candidates and asks you to register the intended file with `--path`
 instead of choosing one silently.
 
 Then add a memory policy to the agent's project instructions. Start with the
-[AI memory playbook](docs/guide/mcp/agent-memory.md), or use the
-[sample `CLAUDE.md`](docs/guide/mcp/samples/CLAUDE.md) as a longer Claude
+[AI memory playbook](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/agent-memory.md),
+or use the
+[sample `CLAUDE.md`](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/samples/CLAUDE.md) as a longer Claude
 template.
 
 ## Recommended LLM Memory Pattern
@@ -128,27 +129,27 @@ Mem0, Letta, and Zep may be a better fit when you want a hosted service, a full 
 
 ## Documentation
 
-- [Why liel](docs/why-liel.md) - what it solves and what it does not
-- [Quickstart](docs/guide/quickstart.md) - demo, Python, and MCP paths
-- [AI memory playbook](docs/guide/mcp/agent-memory.md) - recommended LLM memory pattern
-- [Sample CLAUDE.md](docs/guide/mcp/samples/CLAUDE.md) - Claude project-instructions template
-- [Architecture](docs/design/architecture.md) - system layers and the Mermaid diagram
-- [Python guide](docs/guide/connectors/python.md) - API, transactions, traversal
-- [MCP guide](docs/guide/mcp/index.md) - Claude and other MCP-capable tools
-- [Feature list](docs/reference/features.md) - what is provided at a glance
-- [Reliability](docs/reference/reliability.md) - commit semantics, crash recovery, repair
-- [Format spec](docs/reference/format-spec.md) - byte-level `.liel` file format
-- [Product trade-offs](docs/design/product-tradeoffs.md) - what liel does not do, and why
+- [Why liel](https://github.com/hy-token/liel/blob/main/docs/why-liel.md) - what it solves and what it does not
+- [Quickstart](https://github.com/hy-token/liel/blob/main/docs/guide/quickstart.md) - demo, Python, and MCP paths
+- [AI memory playbook](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/agent-memory.md) - recommended LLM memory pattern
+- [Sample CLAUDE.md](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/samples/CLAUDE.md) - Claude project-instructions template
+- [Architecture](https://github.com/hy-token/liel/blob/main/docs/design/architecture.md) - system layers and the Mermaid diagram
+- [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md) - API, transactions, traversal
+- [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md) - Claude and other MCP-capable tools
+- [Feature list](https://github.com/hy-token/liel/blob/main/docs/reference/features.md) - what is provided at a glance
+- [Reliability](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md) - commit semantics, crash recovery, repair
+- [Format spec](https://github.com/hy-token/liel/blob/main/docs/reference/format-spec.md) - byte-level `.liel` file format
+- [Product trade-offs](https://github.com/hy-token/liel/blob/main/docs/design/product-tradeoffs.md) - what liel does not do, and why
 
 ## Status
 
-`liel` is currently a **Beta** package. The supported contract is the Python-first API plus the single-writer, single-file reliability model. There is no semantic/vector search in core, and `commit()` defines crash-safe boundaries. Breaking changes before `1.0` are tracked in the [changelog](CHANGELOG.md).
+`liel` is currently a **Beta** package. The supported contract is the Python-first API plus the single-writer, single-file reliability model. There is no semantic/vector search in core, and `commit()` defines crash-safe boundaries. Breaking changes before `1.0` are tracked in the [changelog](https://github.com/hy-token/liel/blob/main/CHANGELOG.md).
 
 ## Contributing
 
 Pull requests and issues are welcome. A good first step is to run `liel-demo` and note anything confusing about the output, memory model, or docs.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](https://github.com/hy-token/liel/blob/main/CONTRIBUTING.md).
 
 ## Author
 
@@ -156,4 +157,4 @@ Built by Hayato under [`hy-token`](https://github.com/hy-token), a personal name
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/hy-token/liel/blob/main/LICENSE)
