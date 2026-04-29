@@ -5,6 +5,7 @@ How to use **liel** from applications, local AI tools, MCP clients, and Python w
 | Document | Content |
 |---|---|
 | [Quickstart](quickstart.md) | Demo, Python, and MCP setup paths |
+| [Command line](cli.md) | General `liel` CLI commands for version, diff, and merge |
 | [AI memory playbook](mcp/agent-memory.md) | Recommended LLM memory pattern |
 | [APIs and integrations overview](connectors/index.md) | Entry point for language APIs and integration surfaces |
 | [Python API](connectors/python.md) | Python API, exceptions, packaging |

@@ -7,6 +7,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0a8] - 2026-04-29
+
+### Added
+
+- **`liel help`** - Added an explicit help subcommand for top-level help and
+  command-specific help such as `liel help diff` and `liel help merge`.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a8`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a7] - 2026-04-29
+
+### Added
+
+- **CLI identity helpers** - Centralized current ID-based record matching for
+  CLI diff and node-key normalization for CLI merge in a shared identity module.
+- **ID diff specification** - Documented the current ID-based diff rule in the
+  CLI guide as the single public place for how record IDs are paired and
+  reported.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a7`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a6] - 2026-04-29
+
+### Added
+
+- **Phase 2 growth strategy** - Documented the staged strategy for independent
+  `.liel` file merge and diff: append / ID-based first, then explicit
+  key-aware behavior, then manifest-aware rules, with fuzzy matching limited to
+  review candidates.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a6`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a5] - 2026-04-29
+
+### Added
+
+- **CLI guide** - Added public documentation for the `liel` console script,
+  including `version`, `diff`, `merge`, exit codes, merge options, and links to
+  the sharing conventions.
+
+### Changed
+
+- **Docs navigation** - Added the CLI guide to the `Use liel` navigation and
+  documentation indexes.
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a5`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a4] - 2026-04-29
+
+### Added
+
+- **`liel merge`** - Added a Python CLI command that copies a base `.liel`
+  file to a new output and merges another `.liel` file into it through the
+  existing `GraphDB.merge_from` API.
+- **Merge options** - Added `--node-key`, `--edge-strategy`,
+  `--on-node-conflict`, `--force`, and text/JSON report output for the merge
+  command.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a4`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a3] - 2026-04-29
+
+### Added
+
+- **`liel diff`** - Added a read-only Python CLI command that compares two
+  `.liel` files by mechanical node and edge records, with text and JSON output.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a3`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a2] - 2026-04-29
+
+### Added
+
+- **Sharing conventions** - Added public conventions docs for
+  canonicalization habits and recommended labels, keeping Phase 2 sharing
+  guidance above the schemaless core.
+
+### Changed
+
+- **Docs navigation** - Added a Conventions section to the MkDocs navigation
+  and main documentation index.
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a2`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a1] - 2026-04-29
+
+### Added
+
+- **General CLI shell** - Added the `liel` console script and
+  `python -m liel.cli` entry point with a minimal `liel version` command.
+- **CLI I/O policy foundation** - Added shared helpers for text/JSON output,
+  user-facing CLI errors, exit codes, and output overwrite protection so Phase
+  2 commands can share one behavior surface.
+
+### Changed
+
+- **Versioning** - Started the Phase 2.0 pre-release line with Python package
+  version `0.3.0a1` while keeping the Rust crate at the base `0.3.0` version.
+
 ## [0.2.13] - 2026-04-29
 
 ### Fixed

@@ -18,8 +18,10 @@ The docs are split by audience, not by importance:
 | Audience | Start here | What belongs there |
 |---|---|---|
 | End users trying the package | [Quickstart](guide/quickstart.md) | Install, demo, first Python and MCP paths |
+| Users comparing or merging files | [Command line](guide/cli.md) | `liel version`, `liel diff`, and `liel merge` |
 | Python application users | [Python API](guide/connectors/python.md) | Runtime API, exceptions, transactions, performance notes |
 | AI-tool integrators | [MCP guide](guide/mcp/index.md) and [AI memory playbook](guide/mcp/agent-memory.md) | Tool setup and operating rules |
+| Teams sharing `.liel` files | [Conventions](conventions/index.md) | Recommended labels and canonicalization habits |
 | Connector / format authors | [Format spec](reference/format-spec.md) | Byte layout and compatibility invariants |
 | Contributors and reviewers | [Architecture](design/architecture.md) and [Product trade-offs](design/product-tradeoffs.md) | System shape and design rationale |
 
@@ -59,6 +61,7 @@ Start with **[format spec](reference/format-spec.md)** for byte layout, **[Pytho
 
 - [Why liel](why-liel.md) - problem, before/after, and product positioning
 - [Design entry point](design/index.md) - philosophy and trade-offs
+- [Conventions](conventions/index.md) - recommended labels and sharing habits
 - [Behavior and specifications](reference/index.md) - features, reliability, and byte format
 - [Feature list](reference/features.md) - what is provided at a glance
 - [Reliability and failure model](reference/reliability.md) - commit semantics, crash recovery, and repair guidance
@@ -72,6 +75,7 @@ Start with **[format spec](reference/format-spec.md)** for byte layout, **[Pytho
 |---|---|
 | **[Why liel](why-liel.md)** | New users deciding whether this solves their AI memory problem |
 | **[Guide](guide/index.md)** | Application and tool users using Python or MCP |
+| **[Conventions](conventions/index.md)** | Teams and tools sharing `.liel` files |
 | **[Reference](reference/index.md)** | Users and connector authors checking behavior and file compatibility |
 | **[Design](design/index.md)** | Anyone reviewing architecture, scope, and trade-offs |
 | **[`docs/internal/`](https://github.com/hy-token/liel/tree/main/docs/internal)** | Maintainers working on implementation, release flow, and internal documentation policy |

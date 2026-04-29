@@ -72,6 +72,10 @@ nav:
       - Architecture: design/architecture.md
       - Single-writer guard: design/single-writer-guard.md
       - Product trade-offs: design/product-tradeoffs.md
+  - Conventions:
+      - Overview: conventions/index.md
+      - Canonicalization: conventions/canonicalization.md
+      - Recommended labels: conventions/recommended-labels.md
   - Behavior and specs:
       - Overview: reference/index.md
       - Feature list: reference/features.md
@@ -81,6 +85,7 @@ nav:
   - Use liel:
       - Overview: guide/index.md
       - Quickstart: guide/quickstart.md
+      - Command line: guide/cli.md
       - APIs and integrations:
           - Overview: guide/connectors/index.md
           - Python: guide/connectors/python.md
