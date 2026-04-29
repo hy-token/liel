@@ -11,6 +11,7 @@ from liel.cli import __main__ as cli
 from liel.cli import diff as cli_diff
 from liel.cli import identity as cli_identity
 from liel.cli import merge as cli_merge
+from liel.cli import pack as cli_pack
 from liel.cli.common import CliError, refuse_overwrite
 
 
@@ -20,6 +21,7 @@ def test_cli_without_args_prints_help(capsys):
     assert "Local graph memory CLI" in out
     assert "help" in out
     assert "version" in out
+    assert "pack" in out
 
 
 def test_cli_help_prints_top_level_help(capsys):
@@ -28,6 +30,7 @@ def test_cli_help_prints_top_level_help(capsys):
     assert "Local graph memory CLI" in out
     assert "diff" in out
     assert "merge" in out
+    assert "pack" in out
 
 
 def test_cli_help_prints_command_help(capsys):
@@ -35,6 +38,13 @@ def test_cli_help_prints_command_help(capsys):
     out = capsys.readouterr().out
     assert "usage: liel merge" in out
     assert "--node-key" in out
+
+
+def test_cli_help_prints_pack_help(capsys):
+    assert cli.main(["help", "pack"]) == 0
+    out = capsys.readouterr().out
+    assert "usage: liel pack" in out
+    assert "--include-labels" in out
 
 
 def test_cli_version_text(capsys):
@@ -199,6 +209,85 @@ def test_merge_report_payload_preserves_maps():
         "node_id_map": {1: 10},
         "edge_id_map": {1: 20},
     }
+
+
+def test_cli_pack_extracts_selected_labels(tmp_path):
+    source = tmp_path / "source.liel"
+    output = tmp_path / "packed.liel"
+    with liel.open(str(source)) as db:
+        alice = db.add_node(["Person"], name="Alice")
+        bob = db.add_node(["Person"], name="Bob")
+        acme = db.add_node(["Company"], name="Acme")
+        db.add_edge(alice, "KNOWS", bob, since=2024)
+        db.add_edge(alice, "WORKS_AT", acme)
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "pack",
+                str(source),
+                str(output),
+                "--include-labels",
+                "Person",
+            ]
+        )
+        == 0
+    )
+
+    with liel.open(str(output)) as db:
+        nodes = db.all_nodes_as_records()
+        edges = db.all_edges_as_records()
+
+    assert [node["name"] for node in nodes] == ["Alice", "Bob"]
+    assert [edge["label"] for edge in edges] == ["KNOWS"]
+    assert edges[0]["from_node"] == 1
+    assert edges[0]["to_node"] == 2
+
+
+def test_cli_pack_prints_json_report(capsys, monkeypatch):
+    monkeypatch.setattr(
+        cli_pack,
+        "pack_file",
+        lambda *args, **kwargs: {
+            "source": "source.liel",
+            "output": "packed.liel",
+            "include_labels": ["Person"],
+            "source_nodes": 3,
+            "source_edges": 2,
+            "nodes_packed": 2,
+            "edges_packed": 1,
+            "node_id_map": {1: 1, 2: 2},
+        },
+    )
+
+    assert (
+        cli.main(
+            [
+                "pack",
+                "source.liel",
+                "packed.liel",
+                "--include-labels",
+                "Person",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes_packed"] == 2
+    assert payload["edges_packed"] == 1
+
+
+def test_pack_rejects_in_place_output():
+    try:
+        cli_pack._reject_in_place_output(Path("source.liel"), Path("source.liel"))
+    except CliError as exc:
+        assert exc.exit_code == 2
+        assert "output must be different" in exc.message
+    else:
+        raise AssertionError("expected CliError")
 
 
 def _diff_report(*, changed: bool) -> dict[str, object]:

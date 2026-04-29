@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0a12] - 2026-04-29
+
+### Added
+
+- **`liel pack`** - Added a CLI command that extracts nodes matching explicit
+  labels into a new `.liel` file and copies only edges whose endpoints are both
+  included.
+- **Pack docs and tests** - Documented `liel pack` usage in the CLI guide and
+  added focused CLI coverage for help, JSON reporting, in-place output
+  rejection, and real `.liel` extraction.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.1 pre-release line to Python package
+  version `0.3.0a12`; the Rust crate remains at the base `0.3.0` version.
+
 ## [0.3.0a11] - 2026-04-29
 
 ### Fixed

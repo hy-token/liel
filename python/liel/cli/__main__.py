@@ -9,6 +9,7 @@ import liel
 from .common import EXIT_ERROR, EXIT_OK, CliError, add_format_argument, emit_json, emit_text
 from .diff import run as run_diff
 from .merge import run as run_merge
+from .pack import run as run_pack
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -29,7 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
     help_parser.add_argument(
         "topic",
         nargs="?",
-        choices=("version", "diff", "merge"),
+        choices=("version", "diff", "merge", "pack"),
         help="Command to show help for.",
     )
     help_parser.set_defaults(func=_help, root_parser=parser, command_parsers=command_parsers)
@@ -71,6 +72,22 @@ def build_parser() -> argparse.ArgumentParser:
     add_format_argument(merge_parser)
     merge_parser.set_defaults(func=run_merge)
     command_parsers["merge"] = merge_parser
+
+    pack_parser = subparsers.add_parser(
+        "pack", help="Extract selected labels into a new .liel file."
+    )
+    pack_parser.add_argument("source", help="Source .liel file.")
+    pack_parser.add_argument("output", help="Output .liel file.")
+    pack_parser.add_argument(
+        "--include-labels",
+        action="append",
+        required=True,
+        help="Comma-separated node labels to include. Repeat to add more labels.",
+    )
+    pack_parser.add_argument("--force", action="store_true", help="Overwrite the output file.")
+    add_format_argument(pack_parser)
+    pack_parser.set_defaults(func=run_pack)
+    command_parsers["pack"] = pack_parser
 
     return parser
 

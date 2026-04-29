@@ -31,12 +31,14 @@ behind, clean only this smoke directory with:
 ```bash
 python examples/09_cli_smoke_files.py --clean-locks
 ```
+
 ## Help
 
 ```bash
 liel help
 liel help diff
 liel help merge
+liel help pack
 ```
 
 `liel help` prints top-level help. `liel help <command>` prints help for a
@@ -132,6 +134,29 @@ Useful options:
 | `--format json` | Emit a machine-readable merge report |
 
 The output path must be different from both input files. In-place merge is not a
+supported command-line operation.
+
+## Pack
+
+```bash
+liel pack source.liel packed.liel --include-labels Person,Task
+liel pack source.liel packed.liel --include-labels Person --include-labels Task
+liel pack source.liel packed.liel --include-labels Person --format json
+```
+
+`liel pack` extracts nodes with the selected labels into a new `.liel` file. It
+also copies only edges whose endpoints are both included, remapping node IDs in
+the output file.
+
+Useful options:
+
+| Option | Meaning |
+|---|---|
+| `--include-labels LABELS` | Comma-separated node labels to include. Repeat to add more labels |
+| `--force` | Allow overwriting the output path |
+| `--format json` | Emit a machine-readable pack report |
+
+The output path must be different from the input file. In-place pack is not a
 supported command-line operation.
 
 ## Conventions
