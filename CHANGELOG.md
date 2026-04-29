@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-30
+
+### Added
+
+- **Phase 2 stable CLI set** - Promoted the local sharing, verification, and
+  exchange command set to the stable `0.3.0` line: `diff`, `merge`, `pack`,
+  `manifest`, `sign`, `verify`, `stats`, `export`, and `import`.
+- **Local sharing workflow** - Completed the Phase 2 workflow for comparing
+  `.liel` files, aggregating them safely, extracting shared subsets, verifying
+  deterministic manifests, and exchanging graph data through JSON.
+- **Maintainer roadmap docs** - Added internal Japanese documentation that
+  records Phase 2 completion and separates Phase 3+ work into collaboration,
+  automation, scale, and runtime themes.
+- **CLI quality gates** - Hardened the Phase 2 CLI test suite with coverage for
+  merge options, output overwrite refusal/`--force`, invalid signatures, empty
+  key files, and malformed export JSON.
+
+### Changed
+
+- **Versioning** - Removed the Python package alpha suffix and aligned
+  `pyproject.toml` with the Rust crate at version `0.3.0`.
+- **Phase boundary** - Marked `diff --node-key`, key-aware merge, `filter`,
+  MCP expansion, property indexes, WASM, and multi-writer runtime work as
+  post-Phase 2 topics.
+- **CLI docs clarity** - Split `sign` and `verify` option tables so `--force`
+  is documented only for signature output, not verification.
+
 ## [0.3.0a18] - 2026-04-30
 
 ### Added

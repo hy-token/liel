@@ -212,15 +212,21 @@ can add public-key algorithms without changing the `.liel` file format.
 it against the external signature. It exits with `0` when the signature matches
 and `1` when the current file, signature, or key do not match.
 
-Useful options:
+Useful `sign` options:
 
 | Option | Meaning |
 |---|---|
 | `--key-file PATH` | File containing the HMAC key bytes |
 | `-o, --output PATH` | Write the signature JSON to a file instead of stdout |
+| `--force` | Allow overwriting the output signature path |
+
+Useful `verify` options:
+
+| Option | Meaning |
+|---|---|
+| `--key-file PATH` | File containing the HMAC key bytes |
 | `--signature PATH` | Signature JSON file to verify |
 | `--format json` | Emit a machine-readable verify report |
-| `--force` | Allow overwriting the output signature path |
 
 ## Stats
 

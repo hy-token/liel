@@ -223,6 +223,88 @@ def test_cli_merge_prints_json_report(capsys, monkeypatch):
     assert payload["nodes_created"] == 2
 
 
+def test_cli_merge_node_key_edge_strategy_and_merge_props_options(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    output = tmp_path / "merged.liel"
+    with liel.open(str(left)) as db:
+        a = db.add_node(["Item"], tag="A", name="dst")
+        b = db.add_node(["Item"], tag="B")
+        db.add_edge(a, "LINKS", b, kind="same")
+        db.commit()
+    with liel.open(str(right)) as db:
+        a = db.add_node(["Item"], tag="A", name="src", age=7)
+        b = db.add_node(["Item"], tag="B")
+        db.add_edge(a, "LINKS", b, kind="same")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "-o",
+                str(output),
+                "--node-key",
+                "tag",
+                "--edge-strategy",
+                "idempotent",
+                "--on-node-conflict",
+                "merge_props",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes_created"] == 0
+    assert payload["nodes_reused"] == 2
+    assert payload["edges_created"] == 0
+    assert payload["edges_reused"] == 1
+
+    with liel.open(str(output)) as db:
+        records = {record["tag"]: record for record in db.all_nodes_as_records()}
+        assert db.edge_count() == 1
+    assert records["A"]["name"] == "dst"
+    assert records["A"]["age"] == 7
+
+
+def test_cli_merge_overwrite_conflict_option_updates_matching_node(tmp_path):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    output = tmp_path / "merged.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["User"], email="alice@example.com", name="old")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["User"], email="alice@example.com", name="new")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "-o",
+                str(output),
+                "--node-key",
+                "email",
+                "--on-node-conflict",
+                "overwrite_from_src",
+            ]
+        )
+        == 0
+    )
+
+    with liel.open(str(output)) as db:
+        records = db.all_nodes_as_records()
+    assert len(records) == 1
+    assert records[0]["name"] == "new"
+
+
 def test_merge_rejects_in_place_output():
     try:
         cli_merge._reject_in_place_output(Path("left.liel"), Path("right.liel"), Path("left.liel"))
@@ -725,6 +807,22 @@ def test_cli_import_json_report_preserves_id_maps(tmp_path, capsys):
     assert payload["node_id_map"] == {"7": 1}
 
 
+def test_cli_output_commands_refuse_existing_output_without_force(tmp_path, capsys):
+    for name, output, args in _output_command_cases(tmp_path, force=False):
+        output.write_text("existing", encoding="utf-8")
+
+        assert cli.main(args) == 2, name
+        assert "refusing to overwrite existing file" in capsys.readouterr().err
+
+
+def test_cli_output_commands_accept_force_for_existing_output(tmp_path):
+    for name, output, args in _output_command_cases(tmp_path, force=True):
+        output.write_text("existing", encoding="utf-8")
+
+        assert cli.main(args) == 0, name
+        assert output.exists()
+
+
 def test_import_rejects_missing_edge_endpoint(tmp_path):
     source = tmp_path / "graph.json"
     output = tmp_path / "restored.liel"
@@ -753,6 +851,59 @@ def test_import_rejects_missing_edge_endpoint(tmp_path):
         raise AssertionError("expected CliError")
 
 
+def test_cli_sign_rejects_empty_key_file(tmp_path, capsys):
+    source = _create_sample_liel(tmp_path / "source.liel")
+    key = tmp_path / "empty.key"
+    key.write_bytes(b"")
+
+    assert cli.main(["sign", str(source), "--key-file", str(key)]) == 2
+    assert "key file must not be empty" in capsys.readouterr().err
+
+
+def test_cli_verify_rejects_invalid_signature_shape(tmp_path, capsys):
+    source = _create_sample_liel(tmp_path / "source.liel")
+    key = tmp_path / "secret.key"
+    signature = tmp_path / "bad.sig"
+    key.write_bytes(b"test-secret")
+    signature.write_text("{}", encoding="utf-8")
+
+    assert (
+        cli.main(["verify", str(source), "--key-file", str(key), "--signature", str(signature)])
+        == 2
+    )
+    assert "invalid signature file" in capsys.readouterr().err
+
+
+def test_cli_import_rejects_non_object_export_json(tmp_path, capsys):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text("[]", encoding="utf-8")
+
+    assert cli.main(["import", str(source), "-o", str(output)]) == 2
+    assert "export JSON must contain an object" in capsys.readouterr().err
+
+
+def test_cli_import_rejects_invalid_node_record_shape(tmp_path, capsys):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text(
+        json.dumps(
+            {
+                "export_version": 1,
+                "liel_format": "1.0",
+                "node_count": 1,
+                "edge_count": 0,
+                "nodes": [{"id": "1", "labels": [], "properties": {}}],
+                "edges": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert cli.main(["import", str(source), "-o", str(output)]) == 2
+    assert "node id must be an integer" in capsys.readouterr().err
+
+
 def _diff_report(*, changed: bool) -> dict[str, object]:
     node_diff = {"added": [3] if changed else [], "removed": [], "changed": [1] if changed else []}
     edge_diff = {"added": [], "removed": [], "changed": []}
@@ -775,3 +926,75 @@ def _merge_payload(*, output: str) -> dict[str, object]:
         "node_id_map": {1: 10, 2: 11},
         "edge_id_map": {1: 20},
     }
+
+
+def _create_sample_liel(path: Path) -> Path:
+    with liel.open(str(path)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+    return path
+
+
+def _write_minimal_export(path: Path) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "export_version": 1,
+                "liel_format": "1.0",
+                "node_count": 1,
+                "edge_count": 0,
+                "nodes": [{"id": 1, "labels": ["Person"], "properties": {"name": "Alice"}}],
+                "edges": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def _output_command_cases(tmp_path: Path, *, force: bool) -> list[tuple[str, Path, list[str]]]:
+    source = _create_sample_liel(tmp_path / "source.liel")
+    right = _create_sample_liel(tmp_path / "right.liel")
+    export_json = tmp_path / "graph.json"
+    _write_minimal_export(export_json)
+    key = tmp_path / "secret.key"
+    key.write_bytes(b"test-secret")
+
+    maybe_force = ["--force"] if force else []
+    merge_output = tmp_path / "merge.liel"
+    pack_output = tmp_path / "pack.liel"
+    manifest_output = tmp_path / "manifest.json"
+    sign_output = tmp_path / "sign.sig"
+    export_output = tmp_path / "export.json"
+    import_output = tmp_path / "import.liel"
+    return [
+        (
+            "merge",
+            merge_output,
+            ["merge", str(source), str(right), "-o", str(merge_output), *maybe_force],
+        ),
+        (
+            "pack",
+            pack_output,
+            ["pack", str(source), str(pack_output), "--include-labels", "Person", *maybe_force],
+        ),
+        (
+            "manifest",
+            manifest_output,
+            ["manifest", str(source), "-o", str(manifest_output), *maybe_force],
+        ),
+        (
+            "sign",
+            sign_output,
+            ["sign", str(source), "--key-file", str(key), "-o", str(sign_output), *maybe_force],
+        ),
+        (
+            "export",
+            export_output,
+            ["export", str(source), "-o", str(export_output), *maybe_force],
+        ),
+        (
+            "import",
+            import_output,
+            ["import", str(export_json), "-o", str(import_output), *maybe_force],
+        ),
+    ]
