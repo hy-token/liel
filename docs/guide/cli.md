@@ -39,6 +39,9 @@ liel help
 liel help diff
 liel help merge
 liel help pack
+liel help manifest
+liel help sign
+liel help verify
 ```
 
 `liel help` prints top-level help. `liel help <command>` prints help for a
@@ -158,6 +161,63 @@ Useful options:
 
 The output path must be different from the input file. In-place pack is not a
 supported command-line operation.
+
+## Manifest
+
+```bash
+liel manifest graph.liel
+liel manifest graph.liel -o graph.liel.manifest.json
+```
+
+`liel manifest` emits deterministic JSON for review, Git storage, and future
+signature verification. The manifest is generated from the `.liel` contents and
+does not include the input file name, local path, or generation time.
+
+The initial manifest rules are intentionally narrow:
+
+- UTF-8 JSON with LF line endings and one trailing newline
+- JSON object keys are sorted
+- nodes and edges are sorted by local ID
+- node labels are sorted
+- properties are represented under sorted JSON keys
+- file names, absolute paths, and timestamps from the local run are excluded
+
+Useful options:
+
+| Option | Meaning |
+|---|---|
+| `-o, --output PATH` | Write the manifest JSON to a file instead of stdout |
+| `--force` | Allow overwriting the output path |
+
+## Sign And Verify
+
+```bash
+liel sign graph.liel --key-file secret.key -o graph.liel.sig
+liel verify graph.liel --key-file secret.key --signature graph.liel.sig
+liel verify graph.liel --key-file secret.key --signature graph.liel.sig --format json
+```
+
+`liel sign` signs the deterministic manifest bytes for a `.liel` file and
+writes an external signature JSON file. It does not write into the `.liel` file.
+
+The initial signature mode uses `hmac-sha256` from the Python standard library.
+The key file bytes are used exactly as stored. This is a shared-secret
+integrity check, not a public-key signature scheme. Future signature versions
+can add public-key algorithms without changing the `.liel` file format.
+
+`liel verify` regenerates the manifest from the current `.liel` file and checks
+it against the external signature. It exits with `0` when the signature matches
+and `1` when the current file, signature, or key do not match.
+
+Useful options:
+
+| Option | Meaning |
+|---|---|
+| `--key-file PATH` | File containing the HMAC key bytes |
+| `-o, --output PATH` | Write the signature JSON to a file instead of stdout |
+| `--signature PATH` | Signature JSON file to verify |
+| `--format json` | Emit a machine-readable verify report |
+| `--force` | Allow overwriting the output signature path |
 
 ## Conventions
 

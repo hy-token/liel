@@ -1,22 +1,24 @@
 # Conventions
 
-These pages describe recommended graph conventions for sharing and aggregating
-`.liel` files.
+Entry point for `.liel` sharing conventions. These are conventions, not schema,
+and they are not enforced by the Rust core.
 
-The conventions are not a schema and are not enforced by the Rust core. They
-exist above the storage engine so teams and local agents can create files that
-are easier to diff, merge, pack, and review.
+## Read in this order
 
-| Document | Read when you need to |
-|---|---|
-| [Canonicalization conventions](canonicalization.md) | Choose stable labels, property names, and identity keys before sharing files |
-| [Recommended labels](recommended-labels.md) | Start with a small vocabulary for memory, sources, tasks, and project work |
+1. [Recommended labels](recommended-labels.md) - starter vocabulary plus naming/normalization basics  
+2. [Provenance conventions](provenance.md) - source tracking workflow
 
-## Principles
+`canonicalization.md` is kept for compatibility and now points to the merged
+rules in `recommended-labels.md`.
 
-- Keep the `.liel` file format unchanged.
-- Treat database IDs as local implementation details, not portable identity.
-- Prefer explicit properties and edges over hidden meaning in free text.
-- Use conventions only when they make files easier to exchange or inspect.
-- Let applications extend the vocabulary for their own domain.
+## Responsibilities in one minute
+
+- `recommended-labels.md`: what names and keys to store
+- `provenance.md`: how to preserve evidence and derivation traceability
+
+## Minimal operating rules
+
+1. Keep label/property naming consistent  
+2. Use `url`/`path` or `system + external_id` as identity  
+3. Use `Source` and `DERIVED_FROM` for traceability  
 

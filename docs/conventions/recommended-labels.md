@@ -4,6 +4,16 @@ This page gives a small starter vocabulary for `.liel` files used as local AI
 memory, project memory, and source-backed notes. It is a convention, not a
 schema. Applications may add labels and edge labels freely.
 
+## This page decides
+
+- starter vocabulary (labels, edges, properties)
+- minimal naming rules to reduce drift
+- minimal identity-key rules for mergeability
+
+## This page does not decide
+
+- provenance workflow details (see `provenance.md`)
+
 ## Node labels
 
 | Label | Use for |
@@ -64,4 +74,27 @@ implied relationships.
 
 Keep property names boring and explicit. This matters more than choosing the
 perfect vocabulary on the first try.
+
+## Minimal naming and normalization rules
+
+- Node labels: `PascalCase` (for example `Task`, `Source`)
+- Edge labels: uppercase verb phrases (for example `DEPENDS_ON`, `DERIVED_FROM`)
+- Property names: `lower_snake_case`
+- Text for comparison: normalize line endings to `\n`
+- Paths: prefer project-relative paths with `/` separators
+
+## Minimal identity-key rules
+
+- Prefer `path`, `url`, or `external_id` (optionally with `system`)
+- Avoid internal IDs, timestamps, and long free text as identity keys
+
+## Minimal starter set
+
+If you need a small default, start with:
+
+- Node labels: `Project`, `Task`, `Decision`, `Source`, `Note`
+- Edge labels: `RELATES_TO`, `DEPENDS_ON`, `DERIVED_FROM`, `SUPPORTS`
+- Properties: `key`, `title`, `status`, `path` or `url`, `updated_at`
+
+Expand only when needed.
 

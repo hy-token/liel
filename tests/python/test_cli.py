@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -10,8 +11,10 @@ import liel
 from liel.cli import __main__ as cli
 from liel.cli import diff as cli_diff
 from liel.cli import identity as cli_identity
+from liel.cli import manifest as cli_manifest
 from liel.cli import merge as cli_merge
 from liel.cli import pack as cli_pack
+from liel.cli import signature as cli_signature
 from liel.cli.common import CliError, refuse_overwrite
 
 
@@ -45,6 +48,25 @@ def test_cli_help_prints_pack_help(capsys):
     out = capsys.readouterr().out
     assert "usage: liel pack" in out
     assert "--include-labels" in out
+
+
+def test_cli_help_prints_manifest_help(capsys):
+    assert cli.main(["help", "manifest"]) == 0
+    out = capsys.readouterr().out
+    assert "usage: liel manifest" in out
+    assert "--output" in out
+
+
+def test_cli_help_prints_sign_and_verify_help(capsys):
+    assert cli.main(["help", "sign"]) == 0
+    sign_out = capsys.readouterr().out
+    assert "usage: liel sign" in sign_out
+    assert "--key-file" in sign_out
+
+    assert cli.main(["help", "verify"]) == 0
+    verify_out = capsys.readouterr().out
+    assert "usage: liel verify" in verify_out
+    assert "--signature" in verify_out
 
 
 def test_cli_version_text(capsys):
@@ -288,6 +310,226 @@ def test_pack_rejects_in_place_output():
         assert "output must be different" in exc.message
     else:
         raise AssertionError("expected CliError")
+
+
+def test_pack_normalizes_include_labels_for_deterministic_reports(tmp_path):
+    source = tmp_path / "source.liel"
+    output = tmp_path / "packed.liel"
+    with liel.open(str(source)) as db:
+        db.add_node(["Task"], key="T-1")
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    payload = cli_pack.pack_file(
+        source,
+        output,
+        include_labels=[" Task , Person ", "Person"],
+    )
+
+    # Canonical report shape: labels are unique, trimmed, and sorted.
+    assert payload["include_labels"] == ["Person", "Task"]
+
+
+def test_pack_report_is_stable_across_label_argument_order(tmp_path):
+    source = tmp_path / "source.liel"
+    out_a = tmp_path / "packed-a.liel"
+    out_b = tmp_path / "packed-b.liel"
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.add_node(["Task"], key="T-1")
+        db.commit()
+
+    payload_a = cli_pack.pack_file(source, out_a, include_labels=["Task", "Person"])
+    payload_b = cli_pack.pack_file(source, out_b, include_labels=["Person", "Task"])
+
+    assert payload_a["include_labels"] == payload_b["include_labels"] == ["Person", "Task"]
+    assert (
+        cli_pack.format_text(payload_a).splitlines()[1]
+        == cli_pack.format_text(payload_b).splitlines()[1]
+    )
+
+
+def test_pack_node_id_map_order_follows_source_id_order(tmp_path):
+    source = tmp_path / "source.liel"
+    output = tmp_path / "packed.liel"
+    with liel.open(str(source)) as db:
+        first = db.add_node(["Person"], name="Alice")
+        db.add_node(["Company"], name="Acme")
+        third = db.add_node(["Person"], name="Bob")
+        db.commit()
+
+    payload = cli_pack.pack_file(source, output, include_labels=["Person"])
+
+    assert list(payload["node_id_map"].keys()) == [first.id, third.id]
+
+
+def test_manifest_bytes_match_expected_json(tmp_path):
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        alice = db.add_node(["Person"], name="Alice")
+        bob = db.add_node(["Person", "Task"], key="T-1")
+        db.add_edge(alice, "KNOWS", bob, since=2024)
+        db.commit()
+
+    assert cli_manifest.build_manifest_bytes(source).decode("utf-8") == (
+        "{\n"
+        '  "edge_count": 1,\n'
+        '  "edges": [\n'
+        "    {\n"
+        '      "from_node": 1,\n'
+        '      "id": 1,\n'
+        '      "label": "KNOWS",\n'
+        '      "properties": {\n'
+        '        "since": 2024\n'
+        "      },\n"
+        '      "to_node": 2\n'
+        "    }\n"
+        "  ],\n"
+        '  "liel_format": "1.0",\n'
+        '  "manifest_version": 1,\n'
+        '  "node_count": 2,\n'
+        '  "nodes": [\n'
+        "    {\n"
+        '      "id": 1,\n'
+        '      "labels": [\n'
+        '        "Person"\n'
+        "      ],\n"
+        '      "properties": {\n'
+        '        "name": "Alice"\n'
+        "      }\n"
+        "    },\n"
+        "    {\n"
+        '      "id": 2,\n'
+        '      "labels": [\n'
+        '        "Person",\n'
+        '        "Task"\n'
+        "      ],\n"
+        '      "properties": {\n'
+        '        "key": "T-1"\n'
+        "      }\n"
+        "    }\n"
+        "  ]\n"
+        "}\n"
+    )
+
+
+def test_manifest_generation_is_byte_stable(tmp_path):
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        db.add_node(["Task", "Person"], z=2, a=1)
+        db.commit()
+
+    assert cli_manifest.build_manifest_bytes(source) == cli_manifest.build_manifest_bytes(source)
+
+
+def test_manifest_does_not_depend_on_file_name(tmp_path):
+    source = tmp_path / "source.liel"
+    renamed = tmp_path / "renamed.liel"
+    with liel.open(str(source)) as db:
+        db.add_node(["File"], path="docs/guide/cli.md")
+        db.commit()
+    shutil.copyfile(source, renamed)
+
+    assert cli_manifest.build_manifest_bytes(source) == cli_manifest.build_manifest_bytes(renamed)
+
+
+def test_cli_manifest_writes_output_file(tmp_path):
+    source = tmp_path / "source.liel"
+    output = tmp_path / "manifest.json"
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    assert cli.main(["manifest", str(source), "-o", str(output)]) == 0
+    assert output.read_text(encoding="utf-8").startswith('{\n  "edge_count": 0,')
+
+
+def test_sign_writes_deterministic_external_signature(tmp_path):
+    source = tmp_path / "source.liel"
+    key = tmp_path / "secret.key"
+    key.write_bytes(b"test-secret")
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    payload = cli_signature.sign_file(source, key)
+    assert payload["algorithm"] == "hmac-sha256"
+    assert payload["manifest_version"] == 1
+    assert len(payload["manifest_sha256"]) == 64
+    assert len(payload["signature"]) == 64
+    assert cli_signature.signature_payload_bytes(payload) == cli_signature.signature_payload_bytes(
+        cli_signature.sign_file(source, key)
+    )
+
+
+def test_cli_sign_and_verify_round_trip(tmp_path, capsys):
+    source = tmp_path / "source.liel"
+    key = tmp_path / "secret.key"
+    signature = tmp_path / "source.liel.sig"
+    key.write_bytes(b"test-secret")
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    assert cli.main(["sign", str(source), "--key-file", str(key), "-o", str(signature)]) == 0
+    assert (
+        cli.main(["verify", str(source), "--key-file", str(key), "--signature", str(signature)])
+        == 0
+    )
+    assert capsys.readouterr().out.strip() == "Signature OK."
+
+
+def test_cli_verify_rejects_changed_graph(tmp_path, capsys):
+    source = tmp_path / "source.liel"
+    key = tmp_path / "secret.key"
+    signature = tmp_path / "source.liel.sig"
+    key.write_bytes(b"test-secret")
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    assert cli.main(["sign", str(source), "--key-file", str(key), "-o", str(signature)]) == 0
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Bob")
+        db.commit()
+
+    assert (
+        cli.main(["verify", str(source), "--key-file", str(key), "--signature", str(signature)])
+        == 1
+    )
+    assert capsys.readouterr().out.strip() == "Signature verification failed."
+
+
+def test_cli_verify_json_reports_failure(tmp_path, capsys):
+    source = tmp_path / "source.liel"
+    key = tmp_path / "secret.key"
+    wrong_key = tmp_path / "wrong.key"
+    signature = tmp_path / "source.liel.sig"
+    key.write_bytes(b"test-secret")
+    wrong_key.write_bytes(b"wrong-secret")
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    assert cli.main(["sign", str(source), "--key-file", str(key), "-o", str(signature)]) == 0
+    assert (
+        cli.main(
+            [
+                "verify",
+                str(source),
+                "--key-file",
+                str(wrong_key),
+                "--signature",
+                str(signature),
+                "--format",
+                "json",
+            ]
+        )
+        == 1
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ok"] is False
+    assert payload["algorithm"] == "hmac-sha256"
 
 
 def _diff_report(*, changed: bool) -> dict[str, object]:

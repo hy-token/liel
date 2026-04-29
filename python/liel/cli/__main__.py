@@ -8,8 +8,10 @@ import liel
 
 from .common import EXIT_ERROR, EXIT_OK, CliError, add_format_argument, emit_json, emit_text
 from .diff import run as run_diff
+from .manifest import run as run_manifest
 from .merge import run as run_merge
 from .pack import run as run_pack
+from .signature import run_sign, run_verify
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -30,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     help_parser.add_argument(
         "topic",
         nargs="?",
-        choices=("version", "diff", "merge", "pack"),
+        choices=("version", "diff", "merge", "pack", "manifest", "sign", "verify"),
         help="Command to show help for.",
     )
     help_parser.set_defaults(func=_help, root_parser=parser, command_parsers=command_parsers)
@@ -88,6 +90,41 @@ def build_parser() -> argparse.ArgumentParser:
     add_format_argument(pack_parser)
     pack_parser.set_defaults(func=run_pack)
     command_parsers["pack"] = pack_parser
+
+    manifest_parser = subparsers.add_parser(
+        "manifest", help="Emit a deterministic JSON manifest for a .liel file."
+    )
+    manifest_parser.add_argument("source", help="Source .liel file.")
+    manifest_parser.add_argument("-o", "--output", help="Output manifest JSON file.")
+    manifest_parser.add_argument("--force", action="store_true", help="Overwrite the output file.")
+    manifest_parser.set_defaults(func=run_manifest)
+    command_parsers["manifest"] = manifest_parser
+
+    sign_parser = subparsers.add_parser(
+        "sign", help="Sign a .liel manifest with an external HMAC key."
+    )
+    sign_parser.add_argument("source", help="Source .liel file.")
+    sign_parser.add_argument(
+        "--key-file", required=True, help="File containing the HMAC key bytes."
+    )
+    sign_parser.add_argument("-o", "--output", help="Output signature JSON file.")
+    sign_parser.add_argument("--force", action="store_true", help="Overwrite the output file.")
+    sign_parser.set_defaults(func=run_sign)
+    command_parsers["sign"] = sign_parser
+
+    verify_parser = subparsers.add_parser(
+        "verify", help="Verify a .liel file against an external signature."
+    )
+    verify_parser.add_argument("source", help="Source .liel file.")
+    verify_parser.add_argument(
+        "--signature", required=True, help="Signature JSON file produced by liel sign."
+    )
+    verify_parser.add_argument(
+        "--key-file", required=True, help="File containing the HMAC key bytes."
+    )
+    add_format_argument(verify_parser)
+    verify_parser.set_defaults(func=run_verify)
+    command_parsers["verify"] = verify_parser
 
     return parser
 

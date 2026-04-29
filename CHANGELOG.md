@@ -7,6 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0a16] - 2026-04-30
+
+### Added
+
+- **`liel sign` / `liel verify`** - Added external signature commands that sign
+  and verify deterministic manifest bytes without modifying `.liel` files.
+- **HMAC signature format** - Added a deterministic JSON `.sig` format using
+  standard-library `hmac-sha256` as the first shared-secret integrity check.
+- **Signature tests** - Added CLI coverage for signing, verification success,
+  changed-graph rejection, and JSON verification reports.
+
+### Changed
+
+- **Wave 3 planning** - Documented `hmac-sha256` as the initial no-extra-deps
+  signature mode, with public-key algorithms left to future signature versions.
+- **CLI docs** - Documented `liel sign` and `liel verify` usage, exit behavior,
+  and the shared-secret nature of the initial signature mode.
+- **Versioning** - Advanced the Phase 2.1 pre-release line to Python package
+  version `0.3.0a16`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a15] - 2026-04-30
+
+### Added
+
+- **`liel manifest`** - Added a CLI command that emits deterministic JSON for a
+  `.liel` file, excluding local file names, absolute paths, and generation time
+  so the output can be committed to Git and later used as a signing target.
+- **Manifest determinism tests** - Added byte-for-byte manifest tests covering
+  expected JSON output, repeated generation, file-name independence, and output
+  file writing.
+
+### Changed
+
+- **Wave 3 planning** - Documented the separation between `manifest`, future
+  `sign`, and future `verify`, keeping signatures outside `.liel` files and
+  using exported manifest bytes as the planned signing target.
+- **CLI docs** - Documented `liel manifest` usage and the initial deterministic
+  JSON rules.
+- **Versioning** - Advanced the Phase 2.1 pre-release line to Python package
+  version `0.3.0a15`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a14] - 2026-04-30
+
+### Added
+
+- **Canonical verification baseline** - Documented the Wave 2 starting scope
+  for canonical-form verification as tests/docs-first, explicitly avoiding
+  byte-level file-format canonicalization for now.
+- **Pack determinism tests** - Added pytest coverage that locks down
+  `liel pack` label normalization and stable `node_id_map` ordering as the
+  first concrete canonical-form checks.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.1 pre-release line to Python package
+  version `0.3.0a14`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a13] - 2026-04-30
+
+### Added
+
+- **Provenance conventions** - Added `docs/conventions/provenance.md` and
+  `docs/conventions/provenance.ja.md` with a minimal traceability workflow for
+  source links, derivation edges, and observation metadata.
+- **Japanese conventions set** - Added Japanese companion pages for conventions:
+  `index.ja.md`, `recommended-labels.ja.md`, and `canonicalization.ja.md`.
+
+### Changed
+
+- **Conventions information architecture** - Simplified the conventions docs to
+  a lightweight flow (`recommended-labels` then `provenance`) and moved
+  canonicalization guidance into the recommended-labels page, keeping
+  canonicalization as a compatibility pointer.
+- **MCP writing guidance** - Updated `CLAUDE.md` to recommend provenance-first
+  writes when using `liel[mcp]` (stable source keys, derivation/support edges,
+  and RFC 3339 UTC timestamps).
+- **Versioning** - Advanced the Phase 2.1 pre-release line to Python package
+  version `0.3.0a13`; the Rust crate remains at the base `0.3.0` version.
+
 ## [0.3.0a12] - 2026-04-29
 
 ### Added
