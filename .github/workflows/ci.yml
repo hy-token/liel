@@ -81,6 +81,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      - name: Expose Python libs to MSVC linker
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $pythonLib = python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))"
+          "LIB=$pythonLib;$env:LIB" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: cargo test
         run: cargo test
 
@@ -111,10 +118,9 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            target
           key: ${{ runner.os }}-cargo-py${{ matrix.python-version }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-py${{ matrix.python-version }}-
 
       # `maturin develop` refuses to run outside a virtualenv/conda env.
       # Create a `.venv` and expose it to the rest of the job via PATH and
@@ -173,9 +179,9 @@ jobs:
       - name: Install ruff
         run: python -m pip install --upgrade pip ruff
       - name: ruff check
-        run: ruff check python tests/python
+        run: ruff check python tests/python examples/09_cli_smoke_files.py
       - name: ruff format check
-        run: ruff format --check python tests/python
+        run: ruff format --check python tests/python examples/09_cli_smoke_files.py
 
   package-smoke:
     name: Package smoke (ubuntu, py3.11)

@@ -12,6 +12,25 @@ Existing specialized scripts remain available:
 | `liel-demo` | Bundled agent-memory demo |
 | `liel-mcp` | Optional MCP server |
 
+## Smoke files
+
+From a source checkout, generate small ignored `.liel` files for manual CLI
+checks:
+
+```bash
+python examples/09_cli_smoke_files.py --force
+```
+
+The script reads fixed CSV data from `examples/cli_smoke_data/`, writes `.liel`
+files under `target/cli-smoke/`, and prints copyable `diff` and `merge`
+commands. The CSV files are tracked; the generated `.liel` files are not.
+
+On Windows, if a manual CLI smoke run leaves generated `.liel.lock` directories
+behind, clean only this smoke directory with:
+
+```bash
+python examples/09_cli_smoke_files.py --clean-locks
+```
 ## Help
 
 ```bash

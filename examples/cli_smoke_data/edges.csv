@@ -1,0 +1,7 @@
+graph,order,from_ref,label,to_ref,properties_json
+same-left,1,cli-guide,DOCUMENTS,phase-task,"{""source"":""same""}"
+same-right,1,cli-guide,DOCUMENTS,phase-task,"{""source"":""same""}"
+changed-left,1,cli-guide,DOCUMENTS,phase-task,"{""source"":""changed""}"
+changed-right,1,cli-guide,DOCUMENTS,phase-task,"{""source"":""changed""}"
+merge-base,1,cli-guide,RELATES_TO,conventions,"{""kind"":""docs""}"
+merge-incoming,1,cli-guide,RELATES_TO,labels,"{""kind"":""docs""}"

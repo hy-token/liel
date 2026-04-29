@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0a11] - 2026-04-29
+
+### Fixed
+
+- **Windows Rust CI** - Add Python's `libs` directory to MSVC's `LIB` path
+  before `cargo test`, fixing Windows linker failures that could not find
+  `python3.lib`.
+
+### Changed
+
+- **Python lint CI** - Include the CLI smoke helper script in the ruff check
+  and format gates.
+- **Python matrix cache** - Stop restoring the shared Cargo `target` directory
+  in Python CI jobs so Windows/PyO3 builds do not reuse artifacts from another
+  Python version or job.
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a11`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a10] - 2026-04-29
+
+### Added
+
+- **CLI smoke source data** - Moved the CLI smoke `.liel` fixture data into
+  tracked CSV files under `examples/cli_smoke_data/`, while keeping generated
+  `.liel` files ignored under `target/cli-smoke/`.
+
+### Changed
+
+- **CLI smoke generator** - Updated `examples/09_cli_smoke_files.py` to build
+  fixed smoke files from CSV source data instead of hard-coded in-script graph
+  definitions.
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a10`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a9] - 2026-04-29
+
+### Added
+
+- **CLI smoke files** - Added `examples/09_cli_smoke_files.py` to generate
+  ignored `.liel` files for manual `liel diff` and `liel merge` smoke tests.
+- **CLI docs** - Documented how to generate the smoke files from a source
+  checkout.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.0 pre-release line to Python package
+  version `0.3.0a9`; the Rust crate remains at the base `0.3.0` version.
+
 ## [0.3.0a8] - 2026-04-29
 
 ### Added

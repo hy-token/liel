@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "liel"
-version = "0.3.0a8"
+version = "0.3.0a11"
 description = "Single-file graph memory for local AI, agents, and Python applications"
 readme = "README.md"
 license = { text = "MIT" }
