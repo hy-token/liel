@@ -8,10 +8,12 @@ import liel
 
 from .common import EXIT_ERROR, EXIT_OK, CliError, add_format_argument, emit_json, emit_text
 from .diff import run as run_diff
+from .exchange import run_export, run_import
 from .manifest import run as run_manifest
 from .merge import run as run_merge
 from .pack import run as run_pack
 from .signature import run_sign, run_verify
+from .stats import run as run_stats
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -32,7 +34,18 @@ def build_parser() -> argparse.ArgumentParser:
     help_parser.add_argument(
         "topic",
         nargs="?",
-        choices=("version", "diff", "merge", "pack", "manifest", "sign", "verify"),
+        choices=(
+            "version",
+            "diff",
+            "merge",
+            "pack",
+            "manifest",
+            "sign",
+            "verify",
+            "stats",
+            "export",
+            "import",
+        ),
         help="Command to show help for.",
     )
     help_parser.set_defaults(func=_help, root_parser=parser, command_parsers=command_parsers)
@@ -125,6 +138,27 @@ def build_parser() -> argparse.ArgumentParser:
     add_format_argument(verify_parser)
     verify_parser.set_defaults(func=run_verify)
     command_parsers["verify"] = verify_parser
+
+    stats_parser = subparsers.add_parser("stats", help="Summarize a .liel file.")
+    stats_parser.add_argument("source", help="Source .liel file.")
+    add_format_argument(stats_parser)
+    stats_parser.set_defaults(func=run_stats)
+    command_parsers["stats"] = stats_parser
+
+    export_parser = subparsers.add_parser("export", help="Export a .liel file as JSON.")
+    export_parser.add_argument("source", help="Source .liel file.")
+    export_parser.add_argument("-o", "--output", help="Output JSON file.")
+    export_parser.add_argument("--force", action="store_true", help="Overwrite the output file.")
+    export_parser.set_defaults(func=run_export)
+    command_parsers["export"] = export_parser
+
+    import_parser = subparsers.add_parser("import", help="Import a JSON export into a .liel file.")
+    import_parser.add_argument("source", help="Source export JSON file.")
+    import_parser.add_argument("-o", "--output", required=True, help="Output .liel file.")
+    import_parser.add_argument("--force", action="store_true", help="Overwrite the output file.")
+    add_format_argument(import_parser)
+    import_parser.set_defaults(func=run_import)
+    command_parsers["import"] = import_parser
 
     return parser
 

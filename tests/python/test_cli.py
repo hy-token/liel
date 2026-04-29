@@ -10,11 +10,13 @@ from types import SimpleNamespace
 import liel
 from liel.cli import __main__ as cli
 from liel.cli import diff as cli_diff
+from liel.cli import exchange as cli_exchange
 from liel.cli import identity as cli_identity
 from liel.cli import manifest as cli_manifest
 from liel.cli import merge as cli_merge
 from liel.cli import pack as cli_pack
 from liel.cli import signature as cli_signature
+from liel.cli import stats as cli_stats
 from liel.cli.common import CliError, refuse_overwrite
 
 
@@ -67,6 +69,25 @@ def test_cli_help_prints_sign_and_verify_help(capsys):
     verify_out = capsys.readouterr().out
     assert "usage: liel verify" in verify_out
     assert "--signature" in verify_out
+
+
+def test_cli_help_prints_stats_help(capsys):
+    assert cli.main(["help", "stats"]) == 0
+    out = capsys.readouterr().out
+    assert "usage: liel stats" in out
+    assert "--format" in out
+
+
+def test_cli_help_prints_export_and_import_help(capsys):
+    assert cli.main(["help", "export"]) == 0
+    export_out = capsys.readouterr().out
+    assert "usage: liel export" in export_out
+    assert "--output" in export_out
+
+    assert cli.main(["help", "import"]) == 0
+    import_out = capsys.readouterr().out
+    assert "usage: liel import" in import_out
+    assert "--format" in import_out
 
 
 def test_cli_version_text(capsys):
@@ -530,6 +551,206 @@ def test_cli_verify_json_reports_failure(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["ok"] is False
     assert payload["algorithm"] == "hmac-sha256"
+
+
+def test_cli_stats_prints_text_summary(tmp_path, capsys):
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        alice = db.add_node(["Person"], name="Alice")
+        bob = db.add_node(["Person", "Task"], key="T-1")
+        db.add_edge(alice, "KNOWS", bob)
+        db.commit()
+
+    assert cli.main(["stats", str(source)]) == 0
+    out = capsys.readouterr().out
+    assert f"File: {source}" in out
+    assert "Nodes: 2" in out
+    assert "Edges: 1" in out
+    assert "  Person: 2" in out
+    assert "  Task: 1" in out
+    assert "  KNOWS: 1" in out
+
+
+def test_cli_stats_prints_json_summary(tmp_path, capsys):
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        alice = db.add_node(["Person"], name="Alice")
+        bob = db.add_node(["Task"], key="T-1")
+        db.add_edge(alice, "KNOWS", bob)
+        db.commit()
+
+    assert cli.main(["stats", str(source), "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["node_count"] == 2
+    assert payload["edge_count"] == 1
+    assert payload["node_labels"] == {"Person": 1, "Task": 1}
+    assert payload["edge_labels"] == {"KNOWS": 1}
+
+
+def test_stats_file_sorts_label_counts(tmp_path):
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        db.add_node(["Zed", "Alpha"])
+        db.add_node(["Alpha"])
+        db.commit()
+
+    payload = cli_stats.stats_file(source)
+    assert list(payload["node_labels"]) == ["Alpha", "Zed"]
+
+
+def test_export_json_matches_expected_deterministic_shape(tmp_path):
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        alice = db.add_node(["Person"], name="Alice")
+        bob = db.add_node(["Task", "Person"], key="T-1")
+        db.add_edge(alice, "KNOWS", bob, since=2024)
+        db.commit()
+
+    assert cli_exchange.build_export_bytes(source).decode("utf-8") == (
+        "{\n"
+        '  "edge_count": 1,\n'
+        '  "edges": [\n'
+        "    {\n"
+        '      "from_node": 1,\n'
+        '      "id": 1,\n'
+        '      "label": "KNOWS",\n'
+        '      "properties": {\n'
+        '        "since": 2024\n'
+        "      },\n"
+        '      "to_node": 2\n'
+        "    }\n"
+        "  ],\n"
+        '  "export_version": 1,\n'
+        '  "liel_format": "1.0",\n'
+        '  "node_count": 2,\n'
+        '  "nodes": [\n'
+        "    {\n"
+        '      "id": 1,\n'
+        '      "labels": [\n'
+        '        "Person"\n'
+        "      ],\n"
+        '      "properties": {\n'
+        '        "name": "Alice"\n'
+        "      }\n"
+        "    },\n"
+        "    {\n"
+        '      "id": 2,\n'
+        '      "labels": [\n'
+        '        "Person",\n'
+        '        "Task"\n'
+        "      ],\n"
+        '      "properties": {\n'
+        '        "key": "T-1"\n'
+        "      }\n"
+        "    }\n"
+        "  ]\n"
+        "}\n"
+    )
+
+
+def test_cli_export_writes_json_file(tmp_path):
+    source = tmp_path / "source.liel"
+    output = tmp_path / "graph.json"
+    with liel.open(str(source)) as db:
+        db.add_node(["File"], path="docs/guide/cli.md")
+        db.commit()
+
+    assert cli.main(["export", str(source), "-o", str(output)]) == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["export_version"] == 1
+    assert payload["nodes"][0]["properties"] == {"path": "docs/guide/cli.md"}
+
+
+def test_cli_import_restores_unordered_export_json(tmp_path):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text(
+        json.dumps(
+            {
+                "export_version": 1,
+                "liel_format": "1.0",
+                "node_count": 2,
+                "edge_count": 1,
+                "nodes": [
+                    {"id": 20, "labels": ["Task"], "properties": {"key": "B"}},
+                    {"id": 10, "labels": ["Task"], "properties": {"key": "A"}},
+                ],
+                "edges": [
+                    {
+                        "id": 99,
+                        "from_node": 20,
+                        "to_node": 10,
+                        "label": "DEPENDS_ON",
+                        "properties": {"kind": "test"},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert cli.main(["import", str(source), "-o", str(output)]) == 0
+    with liel.open(str(output)) as db:
+        nodes = db.all_nodes_as_records()
+        edges = db.all_edges_as_records()
+
+    assert [node["key"] for node in nodes] == ["A", "B"]
+    assert edges[0]["label"] == "DEPENDS_ON"
+    assert edges[0]["from_node"] == 2
+    assert edges[0]["to_node"] == 1
+    assert edges[0]["kind"] == "test"
+
+
+def test_cli_import_json_report_preserves_id_maps(tmp_path, capsys):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text(
+        json.dumps(
+            {
+                "export_version": 1,
+                "liel_format": "1.0",
+                "node_count": 1,
+                "edge_count": 0,
+                "nodes": [{"id": 7, "labels": ["Person"], "properties": {"name": "Alice"}}],
+                "edges": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert cli.main(["import", str(source), "-o", str(output), "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes_imported"] == 1
+    assert payload["edges_imported"] == 0
+    assert payload["node_id_map"] == {"7": 1}
+
+
+def test_import_rejects_missing_edge_endpoint(tmp_path):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text(
+        json.dumps(
+            {
+                "export_version": 1,
+                "liel_format": "1.0",
+                "node_count": 1,
+                "edge_count": 1,
+                "nodes": [{"id": 1, "labels": [], "properties": {}}],
+                "edges": [
+                    {"id": 1, "from_node": 1, "to_node": 2, "label": "BROKEN", "properties": {}}
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    try:
+        cli_exchange.import_file(source, output)
+    except CliError as exc:
+        assert exc.exit_code == 2
+        assert "references a missing node" in exc.message
+    else:
+        raise AssertionError("expected CliError")
 
 
 def _diff_report(*, changed: bool) -> dict[str, object]:

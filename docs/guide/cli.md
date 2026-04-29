@@ -42,6 +42,9 @@ liel help pack
 liel help manifest
 liel help sign
 liel help verify
+liel help stats
+liel help export
+liel help import
 ```
 
 `liel help` prints top-level help. `liel help <command>` prints help for a
@@ -218,6 +221,63 @@ Useful options:
 | `--signature PATH` | Signature JSON file to verify |
 | `--format json` | Emit a machine-readable verify report |
 | `--force` | Allow overwriting the output signature path |
+
+## Stats
+
+```bash
+liel stats graph.liel
+liel stats graph.liel --format json
+```
+
+`liel stats` prints a compact summary of a `.liel` file. It is useful before
+reviewing an unfamiliar file and after `pack`, `merge`, `import`, or `export`
+workflows to confirm counts and label composition.
+
+The report includes:
+
+- file format version
+- file size
+- node and edge counts
+- node label counts
+- edge label counts
+
+## Export And Import
+
+```bash
+liel export graph.liel -o graph.json
+liel import graph.json -o restored.liel
+liel import graph.json -o restored.liel --format json
+```
+
+`liel export` writes a deterministic JSON reconstruction format. The initial
+export format is JSON only; there is no `--as` or data-format option.
+
+`liel import` reads export JSON and creates a new `.liel` file. It does not
+expect the input arrays to be sorted. Source IDs from the JSON are treated as
+reference IDs: import sorts nodes and edges by source ID, creates fresh `.liel`
+records, and remaps edge endpoints through the resulting ID map. Import
+preserves relationships, but it does not promise that imported `.liel` IDs will
+always match source JSON IDs.
+
+Useful options:
+
+| Option | Meaning |
+|---|---|
+| `-o, --output PATH` | Write the export JSON or imported `.liel` file |
+| `--force` | Allow overwriting the output path |
+| `--format json` | Emit a machine-readable import report |
+
+### Manifest vs export
+
+`liel manifest` and `liel export` intentionally have separate JSON contracts.
+
+The manifest contract is the stable verification contract. A
+`manifest_version` must not receive breaking changes because manifest bytes are
+used by `liel sign` and `liel verify`.
+
+The export contract is the reconstruction contract. It is deterministic and
+Git-friendly, but it may evolve to support import workflows. Breaking import or
+export changes must use a new `export_version`.
 
 ## Conventions
 

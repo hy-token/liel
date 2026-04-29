@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0a18] - 2026-04-30
+
+### Added
+
+- **`liel export` / `liel import`** - Added deterministic JSON export and JSON
+  import commands for reconstruction, editing, fixtures, and external tool
+  workflows.
+- **Export/import tests** - Added coverage for deterministic export JSON,
+  unordered import input, ID remapping reports, and missing endpoint rejection.
+
+### Changed
+
+- **Manifest/export boundary** - Documented that `manifest` is the stable
+  verification contract while `export` is the reconstruction contract with its
+  own `export_version`.
+- **Phase 2.2 priority** - Updated the roadmap to prioritize `stats` and
+  `export/import`, while leaving `diff --node-key`, `filter`, and `redact` for
+  later review.
+- **Versioning** - Advanced the Phase 2.2 pre-release line to Python package
+  version `0.3.0a18`; the Rust crate remains at the base `0.3.0` version.
+
+## [0.3.0a17] - 2026-04-30
+
+### Added
+
+- **`liel stats`** - Added a CLI command that summarizes `.liel` files with
+  format, file size, node/edge counts, node label counts, and edge label counts.
+- **Stats docs and tests** - Documented `liel stats` and added text, JSON, and
+  deterministic label-order tests.
+
+### Changed
+
+- **Versioning** - Advanced the Phase 2.2 pre-release line to Python package
+  version `0.3.0a17`; the Rust crate remains at the base `0.3.0` version.
+
 ## [0.3.0a16] - 2026-04-30
 
 ### Added
