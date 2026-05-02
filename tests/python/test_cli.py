@@ -43,6 +43,13 @@ def test_cli_help_prints_command_help(capsys):
     out = capsys.readouterr().out
     assert "usage: liel merge" in out
     assert "--node-key" in out
+    assert "--identity-rules" in out
+
+    assert cli.main(["help", "diff"]) == 0
+    diff_out = capsys.readouterr().out
+    assert "usage: liel diff" in diff_out
+    assert "--node-key" in diff_out
+    assert "--identity-rules" in diff_out
 
 
 def test_cli_help_prints_pack_help(capsys):
@@ -128,7 +135,9 @@ def test_refuse_overwrite_requires_force(monkeypatch):
 
 
 def test_cli_diff_identical_files_json(capsys, monkeypatch):
-    monkeypatch.setattr(cli_diff, "diff_files", lambda left, right: _diff_report(changed=False))
+    monkeypatch.setattr(
+        cli_diff, "diff_files", lambda left, right, **kwargs: _diff_report(changed=False)
+    )
 
     assert cli.main(["diff", "left.liel", "right.liel", "--format", "json"]) == 0
     payload = json.loads(capsys.readouterr().out)
@@ -138,7 +147,9 @@ def test_cli_diff_identical_files_json(capsys, monkeypatch):
 
 
 def test_cli_diff_reports_added_and_changed_records(capsys, monkeypatch):
-    monkeypatch.setattr(cli_diff, "diff_files", lambda left, right: _diff_report(changed=True))
+    monkeypatch.setattr(
+        cli_diff, "diff_files", lambda left, right, **kwargs: _diff_report(changed=True)
+    )
 
     assert cli.main(["diff", "left.liel", "right.liel"]) == 1
     out = capsys.readouterr().out
@@ -171,6 +182,187 @@ def test_diff_record_comparison_is_mechanical_by_id():
     }
 
 
+def test_cli_diff_node_key_matches_independent_ids(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+
+    with liel.open(str(left)) as db:
+        a = db.add_node(["File"], path="src/a.py", title="A")
+        b = db.add_node(["File"], path="src/b.py", title="B")
+        db.add_edge(a, "DEPENDS_ON", b)
+        db.commit()
+
+    with liel.open(str(right)) as db:
+        b = db.add_node(["File"], path="src/b.py", title="B")
+        a = db.add_node(["File"], path="src/a.py", title="A")
+        db.add_edge(a, "DEPENDS_ON", b)
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--node-key", "path"]) == 0
+    assert capsys.readouterr().out.strip() == "No differences."
+
+
+def test_cli_diff_node_key_reports_property_changes(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+
+    with liel.open(str(left)) as db:
+        db.add_node(["File"], path="src/a.py", title="A")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["File"], path="src/a.py", title="A2")
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--node-key", "path", "--format", "json"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes"]["identity"] == {"mode": "node_key", "keys": ["path"]}
+    assert payload["nodes"]["changed"] == ["path='src/a.py'"]
+
+
+def test_cli_diff_node_key_reports_edge_property_changes(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+
+    with liel.open(str(left)) as db:
+        a = db.add_node(["File"], path="src/a.py")
+        b = db.add_node(["File"], path="src/b.py")
+        db.add_edge(a, "DEPENDS_ON", b, reason="old")
+        db.commit()
+    with liel.open(str(right)) as db:
+        b = db.add_node(["File"], path="src/b.py")
+        a = db.add_node(["File"], path="src/a.py")
+        db.add_edge(a, "DEPENDS_ON", b, reason="new")
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--node-key", "path", "--format", "json"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["edges"]["changed"] == []
+    assert payload["edges"]["identity"] == {
+        "mode": "node_key_edge_multiset",
+        "node_keys": ["path"],
+    }
+    assert payload["edges"]["removed"] == [
+        "path='src/a.py' -[DEPENDS_ON reason='old']-> path='src/b.py'"
+    ]
+    assert payload["edges"]["added"] == [
+        "path='src/a.py' -[DEPENDS_ON reason='new']-> path='src/b.py'"
+    ]
+
+
+def test_cli_diff_node_key_compares_duplicate_edges_as_multiset(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+
+    with liel.open(str(left)) as db:
+        a = db.add_node(["File"], path="src/a.py")
+        b = db.add_node(["File"], path="src/b.py")
+        db.add_edge(a, "DEPENDS_ON", b, reason="same")
+        db.add_edge(a, "DEPENDS_ON", b, reason="same")
+        db.commit()
+    with liel.open(str(right)) as db:
+        b = db.add_node(["File"], path="src/b.py")
+        a = db.add_node(["File"], path="src/a.py")
+        db.add_edge(a, "DEPENDS_ON", b, reason="same")
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--node-key", "path", "--format", "json"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["edges"]["removed"] == [
+        "path='src/a.py' -[DEPENDS_ON reason='same']-> path='src/b.py'"
+    ]
+    assert payload["edges"]["added"] == []
+    assert payload["edges"]["changed"] == []
+
+
+def test_cli_diff_node_key_rejects_missing_key(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+
+    with liel.open(str(left)) as db:
+        db.add_node(["File"], path="src/a.py")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["File"], title="missing")
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--node-key", "path"]) == 2
+    assert "missing --node-key property: path" in capsys.readouterr().err
+
+
+def test_cli_diff_identity_rules_match_by_label_specific_keys(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    rules = tmp_path / "rules.json"
+    rules.write_text(
+        json.dumps({"identity_rules": {"File": ["path"], "Task": ["system", "external_id"]}}),
+        encoding="utf-8",
+    )
+
+    with liel.open(str(left)) as db:
+        file_node = db.add_node(["File"], path="src/a.py", title="A")
+        task = db.add_node(["Task"], system="github", external_id="123", title="Fix")
+        db.add_edge(task, "DEPENDS_ON", file_node)
+        db.commit()
+    with liel.open(str(right)) as db:
+        task = db.add_node(["Task"], system="github", external_id="123", title="Fix")
+        file_node = db.add_node(["File"], path="src/a.py", title="A2")
+        db.add_edge(task, "DEPENDS_ON", file_node)
+        db.commit()
+
+    assert (
+        cli.main(
+            ["diff", str(left), str(right), "--identity-rules", str(rules), "--format", "json"]
+        )
+        == 1
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes"]["identity"]["mode"] == "identity_rules"
+    assert payload["nodes"]["changed"] == ["File:path='src/a.py'"]
+    assert payload["edges"]["identity"] == {
+        "mode": "identity_rules_edge_multiset",
+        "rules": {"File": ["path"], "Task": ["system", "external_id"]},
+    }
+    assert payload["edges"]["added"] == []
+    assert payload["edges"]["removed"] == []
+
+
+def test_cli_diff_identity_rules_rejects_unmatched_node_label(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    rules = tmp_path / "rules.json"
+    rules.write_text(json.dumps({"identity_rules": {"File": ["path"]}}), encoding="utf-8")
+
+    with liel.open(str(left)) as db:
+        db.add_node(["File"], path="src/a.py")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Task"], external_id="123")
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--identity-rules", str(rules)]) == 2
+    assert "does not match any --identity-rules label" in capsys.readouterr().err
+
+
+def test_cli_diff_identity_rules_rejects_multiple_matching_labels(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    rules = tmp_path / "rules.json"
+    rules.write_text(
+        json.dumps({"identity_rules": {"File": ["path"], "Source": ["url"]}}),
+        encoding="utf-8",
+    )
+
+    with liel.open(str(left)) as db:
+        db.add_node(["File"], path="src/a.py")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["File", "Source"], path="src/a.py", url="https://example.com")
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--identity-rules", str(rules)]) == 2
+    assert "matches multiple --identity-rules labels" in capsys.readouterr().err
+
+
 def test_identity_helpers_normalize_records_and_node_key():
     records = [
         {"id": 2, "properties": {"name": "B"}},
@@ -193,6 +385,7 @@ def test_cli_merge_prints_text_report(capsys, monkeypatch):
     assert cli.main(["merge", "left.liel", "right.liel", "-o", "merged.liel"]) == 0
     out = capsys.readouterr().out
     assert "Merged into merged.liel" in out
+    assert "Can merge: yes" in out
     assert "Nodes: +2 reused 1" in out
     assert "Edges: +1 reused 0" in out
 
@@ -221,6 +414,194 @@ def test_cli_merge_prints_json_report(capsys, monkeypatch):
     payload = json.loads(capsys.readouterr().out)
     assert payload["output"] == "merged.liel"
     assert payload["nodes_created"] == 2
+
+
+def test_cli_merge_requires_output_unless_dry_run(capsys):
+    assert cli.main(["merge", "left.liel", "right.liel"]) == 2
+    assert "merge output is required unless --dry-run is set" in capsys.readouterr().err
+
+
+def test_cli_merge_dry_run_prints_preview_without_output(capsys, monkeypatch):
+    monkeypatch.setattr(
+        cli_merge,
+        "merge_files",
+        lambda *args, **kwargs: _merge_payload(output=None, dry_run=True),
+    )
+
+    assert cli.main(["merge", "left.liel", "right.liel", "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert "Dry-run merge preview for (no output path)" in out
+    assert "Nodes: +2 reused 1" in out
+
+
+def test_cli_merge_dry_run_does_not_create_output(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    output = tmp_path / "merged.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], tag="B")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "-o",
+                str(output),
+                "--dry-run",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["dry_run"] is True
+    assert payload["can_merge"] is True
+    assert payload["conflicts"] == []
+    assert payload["warnings"] == []
+    assert payload["output"] == str(output)
+    assert payload["nodes_created"] == 1
+    assert not output.exists()
+
+
+def test_cli_merge_dry_run_reports_missing_node_key_conflict(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], name="missing")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "--node-key",
+                "tag",
+                "--dry-run",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["can_merge"] is False
+    assert payload["conflicts"][0]["type"] == "missing_node_key"
+    assert payload["conflicts"][0]["side"] == "source"
+    assert payload["node_id_map"] == {}
+
+
+def test_cli_merge_dry_run_reports_duplicate_destination_key_conflict(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A")
+        db.add_node(["Item"], tag="A")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], tag="A")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "--node-key",
+                "tag",
+                "--dry-run",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    conflict_types = {conflict["type"] for conflict in payload["conflicts"]}
+    assert "duplicate_node_key" in conflict_types
+    assert "ambiguous_destination_node_key" in conflict_types
+
+
+def test_cli_merge_dry_run_reports_property_conflict_warnings(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A", status="open")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], tag="A", status="closed")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "--node-key",
+                "tag",
+                "--dry-run",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["can_merge"] is True
+    assert payload["conflicts"] == []
+    assert payload["warnings"] == [
+        {
+            "type": "node_property_conflict",
+            "identity": "tag='A'",
+            "property": "status",
+            "destination": "open",
+            "source": "closed",
+            "policy": "keep_dst",
+            "resolution": "source_ignored",
+            "message": "tag='A' property 'status' differs; source_ignored by keep_dst",
+        }
+    ]
+
+
+def test_cli_merge_dry_run_prints_warning_summary(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A", status="open")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], tag="A", status="closed")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "--node-key",
+                "tag",
+                "--dry-run",
+            ]
+        )
+        == 0
+    )
+    out = capsys.readouterr().out
+    assert "Warnings: 1" in out
+    assert "node_property_conflict" in out
 
 
 def test_cli_merge_node_key_edge_strategy_and_merge_props_options(tmp_path, capsys):
@@ -269,6 +650,129 @@ def test_cli_merge_node_key_edge_strategy_and_merge_props_options(tmp_path, caps
         assert db.edge_count() == 1
     assert records["A"]["name"] == "dst"
     assert records["A"]["age"] == 7
+
+
+def test_cli_merge_identity_rules_reuses_label_specific_nodes(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    output = tmp_path / "merged.liel"
+    rules = tmp_path / "rules.json"
+    rules.write_text(
+        json.dumps({"identity_rules": {"File": ["path"], "Task": ["system", "external_id"]}}),
+        encoding="utf-8",
+    )
+
+    with liel.open(str(left)) as db:
+        file_node = db.add_node(["File"], path="src/a.py", title="dst")
+        task = db.add_node(["Task"], system="github", external_id="123", status="open")
+        db.add_edge(task, "DEPENDS_ON", file_node, reason="same")
+        db.commit()
+    with liel.open(str(right)) as db:
+        file_node = db.add_node(["File"], path="src/a.py", title="src", language="python")
+        task = db.add_node(["Task"], system="github", external_id="123", status="done")
+        db.add_edge(task, "DEPENDS_ON", file_node, reason="same")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "-o",
+                str(output),
+                "--identity-rules",
+                str(rules),
+                "--edge-strategy",
+                "idempotent",
+                "--on-node-conflict",
+                "merge_props",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes_created"] == 0
+    assert payload["nodes_reused"] == 2
+    assert payload["edges_created"] == 0
+    assert payload["edges_reused"] == 1
+
+    with liel.open(str(output)) as db:
+        nodes = db.all_nodes_as_records()
+        edges = db.all_edges_as_records()
+    file_record = next(record for record in nodes if "File" in record["labels"])
+    task_record = next(record for record in nodes if "Task" in record["labels"])
+    assert file_record["title"] == "dst"
+    assert file_record["language"] == "python"
+    assert task_record["status"] == "open"
+    assert len(edges) == 1
+
+
+def test_cli_merge_identity_rules_dry_run_reports_unmatched_source(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    rules = tmp_path / "rules.json"
+    rules.write_text(json.dumps({"identity_rules": {"File": ["path"]}}), encoding="utf-8")
+    with liel.open(str(left)) as db:
+        db.add_node(["File"], path="src/a.py")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Note"], text="no identity rule")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "--identity-rules",
+                str(rules),
+                "--dry-run",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["can_merge"] is False
+    assert payload["conflicts"][0]["type"] == "unmatched_identity_rule"
+    assert payload["node_id_map"] == {}
+
+
+def test_cli_merge_identity_rules_dry_run_reports_property_and_label_warnings(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    rules = tmp_path / "rules.json"
+    rules.write_text(json.dumps({"identity_rules": {"Task": ["external_id"]}}), encoding="utf-8")
+    with liel.open(str(left)) as db:
+        db.add_node(["Task"], external_id="123", status="open")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Task", "Imported"], external_id="123", status="closed")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "--identity-rules",
+                str(rules),
+                "--dry-run",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    warning_types = {warning["type"] for warning in payload["warnings"]}
+    assert warning_types == {"node_label_difference", "node_property_conflict"}
 
 
 def test_cli_merge_overwrite_conflict_option_updates_matching_node(tmp_path):
@@ -326,6 +830,10 @@ def test_merge_report_payload_preserves_maps():
     )
 
     assert cli_merge._report_payload(report, Path("out.liel")) == {
+        "dry_run": False,
+        "can_merge": True,
+        "conflicts": [],
+        "warnings": [],
         "output": "out.liel",
         "nodes_created": 2,
         "nodes_reused": 1,
@@ -916,8 +1424,12 @@ def _diff_report(*, changed: bool) -> dict[str, object]:
     }
 
 
-def _merge_payload(*, output: str) -> dict[str, object]:
+def _merge_payload(*, output: str | None, dry_run: bool = False) -> dict[str, object]:
     return {
+        "dry_run": dry_run,
+        "can_merge": True,
+        "conflicts": [],
+        "warnings": [],
         "output": output,
         "nodes_created": 2,
         "nodes_reused": 1,

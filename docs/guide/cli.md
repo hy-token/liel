@@ -62,11 +62,13 @@ liel version --format json
 ```bash
 liel diff left.liel right.liel
 liel diff left.liel right.liel --format json
+liel diff left.liel right.liel --node-key path
+liel diff left.liel right.liel --identity-rules identity-rules.json
 ```
 
 `liel diff` is read-only. It compares live node and edge records mechanically by
-their current IDs and properties. It does not infer that two nodes are
-semantically equivalent and it does not apply a global schema.
+their current IDs and properties unless an explicit identity rule is provided.
+It does not infer that two nodes are semantically equivalent.
 
 ### ID-based comparison
 
@@ -91,9 +93,56 @@ Under this rule:
 - node and edge properties are compared by exact stored values
 - edge endpoints are compared by their current local node IDs
 
-Future key-aware and manifest-aware diff modes should reuse the same identity
-resolution layer, then change only how records are paired before reporting
-`added`, `removed`, and `changed`.
+### Key-aware comparison
+
+For independently created `.liel` files, use `--node-key` when every node has a
+stable property that identifies the same real-world object across files:
+
+```bash
+liel diff left.liel right.liel --node-key path
+liel diff left.liel right.liel --node-key system --node-key external_id
+```
+
+The first Phase 3 key-aware mode is intentionally strict:
+
+- every node in both files must have all requested key properties
+- the resulting key must be unique inside each file
+- ambiguous or missing keys fail closed with exit code `2`
+- matched nodes are compared without considering their local IDs
+- edges are compared as a multiset of key-resolved endpoint, label, and
+  property signatures
+- without a future `--edge-key`, edge property changes are reported as one
+  removed edge plus one added edge
+
+Fuzzy matching, duplicate candidates, and partial review reports are left for
+later conflict / candidate diff work. `--node-key` only confirms differences
+when explicit stable keys make the identity rule unambiguous.
+
+When different labels need different identity properties, pass an identity rules
+JSON file instead of repeating one key for every node:
+
+```bash
+liel diff left.liel right.liel --identity-rules identity-rules.json
+```
+
+```json
+{
+  "identity_rules": {
+    "File": ["path"],
+    "Task": ["system", "external_id"]
+  }
+}
+```
+
+The initial identity-rules mode is also strict:
+
+- every node must match exactly one rule by label
+- the rule's properties must be present on that node
+- the resulting identity must be unique inside each file
+- nodes with no matching rule, multiple matching labels, missing keys, or
+  duplicate identities fail closed with exit code `2`
+- edges are compared as a multiset of resolved endpoint identities, edge label,
+  and edge properties, so duplicate parallel edges are preserved by count
 
 Exit codes:
 
@@ -107,6 +156,7 @@ Exit codes:
 
 ```bash
 liel merge base.liel incoming.liel -o merged.liel
+liel merge base.liel incoming.liel --dry-run --format json
 ```
 
 `liel merge` copies the base file to the output path, then merges the incoming
@@ -119,23 +169,58 @@ By default, merge is append-oriented:
 liel merge base.liel incoming.liel -o merged.liel
 ```
 
+Use `--dry-run` to preview the merge report without writing an output file:
+
+```bash
+liel merge base.liel incoming.liel --dry-run --format json
+liel merge base.liel incoming.liel -o merged.liel --dry-run --format json
+```
+
+When `--dry-run` is set, `-o/--output` is optional and is treated only as the
+planned output path in the report. The command copies the base file to a
+temporary preview file, runs the merge there, returns the same counters and ID
+maps as a real merge, and deletes the preview file.
+
+For key-aware dry runs, the JSON report includes `can_merge` and `conflicts`.
+Missing source keys, duplicate source keys, and ambiguous destination matches
+are reported as conflicts instead of creating an output file.
+
+When a key-aware dry run can merge but would discard or overwrite node property
+values according to `--on-node-conflict`, the JSON report includes `warnings`.
+Property warnings do not change `can_merge`; they are review material for values
+that the selected merge policy will ignore or replace. Label differences on
+reused nodes are also reported as warnings because merge keeps destination
+labels.
+
 When files share a stable property, pass that property as a node identity key:
 
 ```bash
 liel merge base.liel incoming.liel -o merged.liel --node-key key
 liel merge base.liel incoming.liel -o merged.liel --node-key system --node-key external_id
+liel merge base.liel incoming.liel -o merged.liel --identity-rules identity-rules.json
 ```
+
+`--identity-rules` accepts the same JSON shape as `liel diff`. It lets merge use
+different identity properties per label, such as `File.path` and
+`Task.system + Task.external_id`. It is mutually exclusive with `--node-key`.
+
+For identity-rules merge, source nodes must match exactly one rule. Destination
+nodes that match a rule must also be unambiguous; destination nodes with no
+matching rule are ignored as reuse candidates. Dry-run reports rule problems as
+`conflicts` with `can_merge: false`.
 
 Useful options:
 
 | Option | Meaning |
 |---|---|
 | `--node-key NAME` | Reuse nodes by property name. Repeat for a compound key |
+| `--identity-rules PATH` | Reuse nodes with label-specific identity rules from JSON |
 | `--edge-strategy append` | Always append merged edges. This is the default |
 | `--edge-strategy idempotent` | Reuse an exactly matching merged edge when possible |
 | `--on-node-conflict keep_dst` | Keep existing destination properties on key collision |
 | `--on-node-conflict overwrite_from_src` | Replace reused node properties with source properties |
 | `--on-node-conflict merge_props` | Fill missing destination properties from source |
+| `--dry-run` | Preview the merge report without writing an output file |
 | `--force` | Allow overwriting the output path |
 | `--format json` | Emit a machine-readable merge report |
 

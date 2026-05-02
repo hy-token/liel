@@ -58,6 +58,15 @@ def build_parser() -> argparse.ArgumentParser:
     diff_parser = subparsers.add_parser("diff", help="Compare two .liel files.")
     diff_parser.add_argument("left", help="Left .liel file.")
     diff_parser.add_argument("right", help="Right .liel file.")
+    diff_parser.add_argument(
+        "--node-key",
+        action="append",
+        help="Property name used for node identity. Repeat for a compound key.",
+    )
+    diff_parser.add_argument(
+        "--identity-rules",
+        help="JSON file containing label-specific identity_rules for key-aware diff.",
+    )
     add_format_argument(diff_parser)
     diff_parser.set_defaults(func=run_diff)
     command_parsers["diff"] = diff_parser
@@ -65,12 +74,21 @@ def build_parser() -> argparse.ArgumentParser:
     merge_parser = subparsers.add_parser("merge", help="Merge two .liel files into a new file.")
     merge_parser.add_argument("left", help="Base .liel file copied to the output first.")
     merge_parser.add_argument("right", help=".liel file merged into the output.")
-    merge_parser.add_argument("-o", "--output", required=True, help="Output .liel file.")
+    merge_parser.add_argument("-o", "--output", help="Output .liel file.")
     merge_parser.add_argument("--force", action="store_true", help="Overwrite the output file.")
+    merge_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the merge report without writing an output file.",
+    )
     merge_parser.add_argument(
         "--node-key",
         action="append",
         help="Property name used for node identity. Repeat for a compound key.",
+    )
+    merge_parser.add_argument(
+        "--identity-rules",
+        help="JSON file containing label-specific identity_rules for key-aware merge.",
     )
     merge_parser.add_argument(
         "--edge-strategy",

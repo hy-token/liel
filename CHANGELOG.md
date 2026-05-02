@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-02
+
+### Added
+
+- **Phase 3 collaboration semantics** - Added key-aware `liel diff` support
+  with repeatable `--node-key`, label-specific `--identity-rules`, and edge
+  multiset comparison so independently created `.liel` files can be compared
+  without relying on local IDs.
+- **Merge previews and rule-aware merge** - Added `liel merge --dry-run`
+  previews, `can_merge` / `conflicts` JSON reporting, and label-specific
+  `--identity-rules` merge support.
+- **Merge warning reports** - Added key-aware merge `warnings` for reused nodes
+  whose properties or labels differ under the selected node conflict policy.
+- **Phase 3 design notes** - Documented the initial strict identity,
+  conflict-report, and merge-preview scope for maintainers.
+
+### Changed
+
+- **Versioning** - Advanced the Rust crate and Python package to version
+  `0.4.0`.
+
 ## [0.3.0] - 2026-04-30
 
 ### Added
@@ -707,3 +728,4 @@ First public Beta PyPI release.
 [0.2.8]: https://github.com/hy-token/liel/releases/tag/v0.2.8
 [0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9
 [0.2.10]: https://github.com/hy-token/liel/releases/tag/v0.2.10
+[0.4.0]: https://github.com/hy-token/liel/releases/tag/v0.4.0
