@@ -24,7 +24,7 @@ On GitHub-hosted runners, install the published wheel after setting up Python:
 - uses: actions/setup-python@v6
   with:
     python-version: "3.11"
-- run: pip install "liel>=0.5.0,<1"
+- run: pip install "liel>=0.5.1,<1"
 ```
 
 Then invoke `liel` the same way you would locally. Exit codes follow
