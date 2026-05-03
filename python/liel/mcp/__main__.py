@@ -19,7 +19,8 @@ def main() -> None:
         description="Start the liel AI memory MCP server for a .liel file.",
         epilog=(
             "Official tools: liel_overview, liel_find, liel_explore, "
-            "liel_trace, liel_map, liel_append, liel_merge."
+            "liel_trace, liel_map, liel_diff, liel_merge_preview, liel_manifest, "
+            "liel_append, liel_merge."
         ),
     )
     parser.add_argument(

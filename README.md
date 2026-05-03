@@ -1,11 +1,14 @@
 # liel
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/hy-token/liel/blob/main/LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/hy-token/liel/ci.yml?branch=main&label=CI)](https://github.com/hy-token/liel/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/hy-token/liel/ci.yml?label=CI)](https://github.com/hy-token/liel/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/liel)](https://pypi.org/project/liel/)
 
-The name comes from the French *lier* — to connect, to bind.
+## Git-compatible memory for AI agents.
 
-**A portable external brain for local AI agents** — one file, structured by relationships.
+One local file you can merge, diff, trace, and inspect.
+
+![Parallel merge preview: two agent memories merged with `liel merge --dry-run`](assets/demo/parallel-merge.wsl.gif)
 
 ```bash
 pip install liel
@@ -17,6 +20,51 @@ Runs fully local. No API keys required (LLM optional).
 `liel` is a single-file graph memory layer for people using local AI agents while coding. One `.liel` file stores decisions, tasks, sources, files, facts, and the relationships between them, so tools can recall *why* decisions were made, not just what was said.
 
 The core is a small Rust **property graph** engine with **Python (PyO3)** bindings and optional MCP tools. No server, no cloud, no daemon.
+
+## Why decisions disappear
+
+Chat turns roll off the context window, but the graph still holds *how* a choice was reached. `liel trace` walks a shortest path so that reasoning stays visible—not just the final answer.
+
+![`liel trace` narrative output (shortest path through decision nodes)](assets/demo/demo-trace.wsl.gif)
+
+The name *liel* comes from the French *lier* — to connect, to bind.
+
+## Three quick demos (~30 seconds each)
+
+Use the **fixed SaaS-style memory** generator (two agents diverge on the same bug/decision graph). From a checkout with `liel` on your `PATH` and Python 3.9+:
+
+```bash
+python examples/demo_memory/make_demo_files.py --force
+```
+
+Default output: `target/demo-memory/` (`base.liel`, `agent-a.liel`, `agent-b.liel`, `identity-rules.json`).
+
+1. **Parallel merge preview (two agents, one reviewable report)** — the story behind “Git-compatible working memory”:
+
+   ```bash
+   liel merge target/demo-memory/agent-a.liel target/demo-memory/agent-b.liel \
+     --dry-run --identity-rules target/demo-memory/identity-rules.json \
+     --edge-strategy idempotent --format json
+   ```
+
+2. **Diff with stable identity (what drifted between branches of memory)**:
+
+   ```bash
+   liel diff target/demo-memory/base.liel target/demo-memory/agent-a.liel \
+     --identity-rules target/demo-memory/identity-rules.json
+   ```
+
+3. **One-file inspect (portable artifact)**:
+
+   ```bash
+   liel stats target/demo-memory/base.liel --format json
+   ```
+
+For **VHS tapes and GIF outputs**, see [`demos/README.md`](demos/README.md) (English) or [`demos/README.ja.md`](demos/README.ja.md) (Japanese catalog). KPI and posting cadence for these stories live in the maintainer [Phase 4 Marketing Playbook](docs/internal/process/roadmap-phase4-marketing-playbook.ja.md) (Japanese; clone the repo to read it).
+
+## Coding memory helpers (experimental)
+
+Optional thin wrappers in [`python/liel/coding_memory.py`](python/liel/coding_memory.py) for `File` / `Decision` / bug-shaped `Task` nodes — see [`examples/coding_memory/README.md`](examples/coding_memory/README.md) and the [Python guide § Coding memory helpers](docs/guide/connectors/python.md#coding-memory-helpers). Maintainer design (Japanese): [`docs/internal/design/coding-memory.ja.md`](docs/internal/design/coding-memory.ja.md).
 
 ## Why Local-First
 
@@ -134,7 +182,7 @@ Mem0, Letta, and Zep may be a better fit when you want a hosted service, a full 
 - [AI memory playbook](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/agent-memory.md) - recommended LLM memory pattern
 - [Sample CLAUDE.md](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/samples/CLAUDE.md) - Claude project-instructions template
 - [Architecture](https://github.com/hy-token/liel/blob/main/docs/design/architecture.md) - system layers and the Mermaid diagram
-- [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md) - API, transactions, traversal
+- [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md) - API, transactions, traversal, [coding memory helpers](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md#coding-memory-helpers)
 - [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md) - Claude and other MCP-capable tools
 - [Feature list](https://github.com/hy-token/liel/blob/main/docs/reference/features.md) - what is provided at a glance
 - [Reliability](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md) - commit semantics, crash recovery, repair

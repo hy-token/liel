@@ -106,6 +106,7 @@ Recommended behavior:
 
 ```md
 ## Durable Memory
+- Use the repository-root `codex-session-memory.liel` as the canonical project memory file for this repo (see `AGENTS.md`). Do not substitute another `.liel` as the default unless the user says so.
 - If the `liel` MCP server is available, use it as the default durable memory layer for the workspace.
 - Restore context in this order: `liel_overview` -> `liel_find` -> `liel_explore`.
 - Use `liel_trace` when estimating blast radius, ownership paths, or dependency chains.

@@ -30,9 +30,14 @@ connecting.
   "sample_nodes": [
     { "id": 7, "labels": ["Module"], "name": "auth" }
   ],
-  "db_path": "/path/to/project.liel"
+  "db_path": "/path/to/project.liel",
+  "liel_format": "1.0",
+  "file_size": 49152
 }
 ```
+
+`liel_format` and `file_size` match the CLI `liel stats --format json` fields (`version`
+and `file_size` from `db.info()`). There is no separate `liel_stats` MCP tool.
 
 ### liel_find
 
@@ -83,6 +88,53 @@ Render a chosen subgraph as Mermaid.
 |---|---|---|---|
 | `node_ids` | string | `""` | Comma-separated IDs like `"1,3,5"`. |
 | `limit` | integer | `30` | Auto-sampling cap when `node_ids` is omitted. |
+
+### liel_diff
+
+Compare **two** `.liel` files on disk. The JSON payload matches CLI
+[`liel diff --format json`](../../reference/cli-json-inventory.md) /
+[`liel diff`](../cli.md#diff) — same shape as the reference pages for diff.
+
+**Parameters:**
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `left` | string | required | Path to the left/base `.liel` file. |
+| `right` | string | required | Path to the right/other `.liel` file. |
+| `node_key_json` | string | `""` | Optional JSON array of property names for key-aware diff, e.g. `"[\"path\"]"`. Empty means ID-based diff. |
+| `identity_rules_path` | string | `""` | Optional path to identity-rules JSON (same format as CLI `--identity-rules`). Mutually exclusive with `node_key_json`. |
+
+### liel_merge_preview
+
+Preview merging **two** `.liel` files (`merge_from` semantics) **without**
+writing an output file. Same JSON as CLI
+[`liel merge --dry-run --format json`](../../reference/cli-merge-report.md).
+
+Not the same as **`liel_merge`** below (atomic merge into the already-open graph).
+
+**Parameters:**
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `left` | string | required | Base file path (copied conceptually first). |
+| `right` | string | required | Incoming file path merged into the preview. |
+| `output_path` | string | `""` | Optional planned output path string for the report only. |
+| `node_key_json` | string | `""` | Optional JSON array of property names (same as CLI `--node-key`). |
+| `identity_rules_path` | string | `""` | Optional identity-rules JSON path (same as CLI `--identity-rules`). |
+| `edge_strategy` | string | `"append"` | `append` or `idempotent`. |
+| `on_node_conflict` | string | `"keep_dst"` | `keep_dst`, `overwrite_from_src`, or `merge_props`. |
+
+### liel_manifest
+
+Return the deterministic manifest **object** for one `.liel` file (sorted nodes
+and edges, `manifest_version`, counts). Same content as CLI `liel manifest`
+stdout JSON — suitable for signing workflows.
+
+**Parameters:**
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `source` | string | `""` | Path to a `.liel` file. If empty, uses the MCP server’s connected file (`--path`). |
 
 ---
 

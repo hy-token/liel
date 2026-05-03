@@ -4,6 +4,9 @@ The `liel` console script is the shared command-line entry point for local file
 operations. It is implemented in Python and calls the public Python package API.
 The Rust core and `.liel` file format are unchanged.
 
+For JSON payloads and process exit codes across `diff`, `merge`, `stats`,
+`manifest`, `export`, and `import`, see the [CLI JSON inventory](../reference/cli-json-inventory.md).
+
 Existing specialized scripts remain available:
 
 | Script | Purpose |
@@ -32,6 +35,38 @@ behind, clean only this smoke directory with:
 python examples/09_cli_smoke_files.py --clean-locks
 ```
 
+## Demo memory files
+
+Phase 4 demo assets use fixed SaaS-shaped memory data so README and Pages media
+can be regenerated instead of hand-recorded:
+
+```bash
+python examples/demo_memory/make_demo_files.py --force   # optional; tapes also run this hidden
+python demos/render_gifs.py --profile bash               # merge, diff, stats, trace, export/import, CI merge-fail
+# or: vhs demos/parallel-merge.git-bash.tape              # single tape
+```
+
+The script writes ignored files under `target/demo-memory/`:
+
+- `base.liel`
+- `agent-a.liel`
+- `agent-b.liel`
+- `identity-rules.json`
+
+The first VHS sources are environment-specific:
+
+| Environment | Tape |
+|---|---|
+| WSL / Linux bash | `demos/parallel-merge.git-bash.tape` |
+| Windows PowerShell | `demos/parallel-merge.windows-powershell.tape` |
+
+The parallel-merge clips focus on the merge story (hook, `ls` of agent files,
+then dry-run merge). Example merge command:
+
+```bash
+liel merge target/demo-memory/agent-a.liel target/demo-memory/agent-b.liel --dry-run --identity-rules target/demo-memory/identity-rules.json --edge-strategy idempotent
+```
+
 ## Help
 
 ```bash
@@ -43,6 +78,7 @@ liel help manifest
 liel help sign
 liel help verify
 liel help stats
+liel help trace
 liel help export
 liel help import
 ```
@@ -154,6 +190,8 @@ Exit codes:
 
 ## Merge
 
+Merge combines two `.liel` files into a new file or a **preview report**. Treat the result as **review data**, not an automatic judgment of semantic truth: text output is for humans; JSON follows the stable field reference in [CLI merge report](../reference/cli-merge-report.md). Related primitives for Git-friendly workflows include [`liel diff`](#diff), [`liel manifest`](#manifest), [`liel stats`](#stats), and [`liel export` / `import`](#export-and-import).
+
 ```bash
 liel merge base.liel incoming.liel -o merged.liel
 liel merge base.liel incoming.liel --dry-run --format json
@@ -175,6 +213,28 @@ Use `--dry-run` to preview the merge report without writing an output file:
 liel merge base.liel incoming.liel --dry-run --format json
 liel merge base.liel incoming.liel -o merged.liel --dry-run --format json
 ```
+
+Without `--format json`, the text report is written for human memory review:
+
+```text
+Memory merge preview (dry-run)
+Output: (no output path)
+Result: ready with review warnings
+Changes:
+  Nodes: +2 created, 9 reused
+  Edges: +4 created, 7 reused
+Review:
+  Conflicts: 0
+  Warnings: 1
+Warnings:
+- review needed: Bug:key='bug:stripe-duplicate-webhook' has different 'status' values
+  destination: 'investigating'
+  incoming:    'fix_ready'
+  policy:      keep_dst -> source_ignored
+```
+
+The text report is intentionally review-oriented. Use JSON when another tool,
+CI job, MCP tool, or viewer needs to consume the full merge payload.
 
 When `--dry-run` is set, `-o/--output` is optional and is treated only as the
 planned output path in the report. The command copies the base file to a
@@ -209,6 +269,8 @@ nodes that match a rule must also be unambiguous; destination nodes with no
 matching rule are ignored as reuse candidates. Dry-run reports rule problems as
 `conflicts` with `can_merge: false`.
 
+By default, successful CLI execution exits **0** even when the JSON payload has `can_merge: false` or non-empty `warnings`; read those fields for automation. With **`--dry-run --fail-on-conflict`**, exit **1** when the preview is blocked (`can_merge: false` or non-empty `conflicts`). Unexpected failures exit **1**; usage problems exit **2**. See [CLI merge report](../reference/cli-merge-report.md#process-exit-code-vs-can_merge).
+
 Useful options:
 
 | Option | Meaning |
@@ -221,6 +283,7 @@ Useful options:
 | `--on-node-conflict overwrite_from_src` | Replace reused node properties with source properties |
 | `--on-node-conflict merge_props` | Fill missing destination properties from source |
 | `--dry-run` | Preview the merge report without writing an output file |
+| `--fail-on-conflict` | With `--dry-run`, exit **1** when `can_merge` is false or `conflicts` is non-empty |
 | `--force` | Allow overwriting the output path |
 | `--format json` | Emit a machine-readable merge report |
 
@@ -331,6 +394,45 @@ The report includes:
 - node and edge counts
 - node label counts
 - edge label counts
+
+## Trace
+
+```bash
+liel trace graph.liel --from 1 --to 42
+liel trace graph.liel --from 1 --to 42 --no-mermaid
+liel trace graph.liel --from 1 --to 42 --edge-label DEPENDS_ON
+liel trace graph.liel --from 1 --to 42 --format json
+```
+
+`liel trace` finds an **unweighted shortest path** (minimum hops) between two
+live node IDs in a single `.liel` file. It uses the same traversal rule as the
+Python API `shortest_path` and the MCP tool `liel_trace`: directed out-edges,
+optional `--edge-label` to restrict which edge labels may appear on the path.
+
+Output:
+
+- **text** — **Decision-style narrative** when the path includes a `Decision` node:
+  optional `trace_prompt` on the start node, then *Decision found*, *Why* (from the
+  decision’s `reason`, `;`-separated), *Key factors* / *Rejected*
+  (from out-edges), *Implemented in* when the goal is a `File`, then a short *Path*
+  summary. No full resolved file path or raw branch table. With a path, append
+  Mermaid unless `--no-mermaid`.
+- **json** — `path`, `path_hop_labels`, `reasoning_branches`, `mermaid`, plus
+  `source`, `from_node`, `to_node`, and `edge_label` (see [CLI JSON inventory](../reference/cli-json-inventory.md)).
+
+The command always exits `0` when the query runs successfully, including when
+no path exists (`path` is `null` in JSON). Usage problems exit `2`; database
+errors exit `1`.
+
+Useful options:
+
+| Option | Meaning |
+|---|---|
+| `--from ID` | Starting node ID (required, positive integer) |
+| `--to ID` | Ending node ID (required, positive integer) |
+| `--edge-label LABEL` | If set, only edges with this label are followed; omit for any label |
+| `--no-mermaid` | Text only: print the path summary without the Mermaid block |
+| `--format json` | Emit the structured trace report |
 
 ## Export And Import
 

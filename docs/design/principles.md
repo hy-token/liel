@@ -6,6 +6,7 @@
 - No server, no waiting.
 - Minimal dependencies, simple environments.
 - Start small, stay local.
+- Review-friendly: diff, merge, manifests, and signatures let teams treat agent memory like code.
 
 These principles explain why `liel` favors embeddability, portability, and a narrow core over operational scale or server-style features.
 

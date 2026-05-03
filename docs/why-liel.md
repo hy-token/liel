@@ -120,6 +120,14 @@ That narrowness is the point: `liel` gives higher-level memory systems a durable
 
 ---
 
+## Review and collaboration
+
+Persistence alone is not enough when more than one session—or more than one agent—touches the same project memory. You also need a **review surface**: ways to see what changed, whether two files can be merged safely, and what still needs a human decision.
+
+`liel` treats those workflows as first-class. The CLI exposes diff, merge preview, manifests, and import/export so memory files can be checked into source control, compared in CI, and inspected like other collaboration artifacts. `liel` does not try to be the judge of “semantic truth”; it makes **changes and conflicts visible** so people and tools can review them.
+
+---
+
 ## Where to go next
 
 - Start with the [Python API](guide/connectors/python.md) if you want to use `liel` directly.

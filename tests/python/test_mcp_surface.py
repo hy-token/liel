@@ -64,6 +64,9 @@ def test_create_server_registers_official_tools(monkeypatch):
             "liel_explore",
             "liel_trace",
             "liel_map",
+            "liel_diff",
+            "liel_merge_preview",
+            "liel_manifest",
             "liel_append",
             "liel_merge",
         }

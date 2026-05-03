@@ -7,6 +7,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-03
+
+### Added
+
+- **Trace demo graph + narrative output** — `trace-why-postgres.liel` from `make_demo_files.py` includes `trace_prompt` and decision copy for SNS-style demos. `liel trace` **text** mode emphasizes *Decision found* / *Why* / *Key factors* / *Rejected* / *Implemented in* and a short *Path* (no full filesystem path, no raw branch table); JSON still has `reasoning_branches` and `path_hop_labels`. VHS `demo-trace.*` runs a **single** `--no-mermaid` command.
+
+### Phase 4: Wave A (2026-05-03) — review contract and CLI machine-readable base
+
+Completed in [Roadmap Phase 4](docs/internal/process/roadmap-phase4-automation-ecosystem.ja.md) (items **9** and **11**, stages 1–3): memory-review language; `liel merge --dry-run` text and JSON; and `liel diff` / `liel stats` / `liel manifest` / `liel export` fixed as Git-oriented primitives in the [command-line guide](docs/guide/cli.md) and references. **Contract sources:** [CLI JSON inventory](docs/reference/cli-json-inventory.md), [CLI merge report](docs/reference/cli-merge-report.md). **Scope note:** default merge exit code behavior when `can_merge` is `false` was documented for JSON consumers; see Wave C for optional CI exit mapping.
+
+### Phase 4: Wave B (2026-05-03) — positioning in public docs and `liel trace`
+
+Completed in the same roadmap (backlog item **19** and positioning pass): [Why liel](docs/why-liel.md) and [Design index](docs/design/index.md) (review / diff / merge angle); [design principles](docs/design/principles.md) and [guide index](docs/guide/index.md); **CLI `liel trace`** (`python/liel/cli/trace.py`, JSON aligned with MCP `liel_trace`); [CLI guide](docs/guide/cli.md) / [CLI JSON inventory](docs/reference/cli-json-inventory.md) / [capability matrix](docs/reference/capability-matrix.md) / [documentation taxonomy](docs/internal/process/documentation-taxonomy.ja.md) updates; [marketing playbook](docs/internal/process/roadmap-phase4-marketing-playbook.ja.md) and [GIF task plan](docs/internal/process/phase4-gif-task-plan.ja.md) aligned. README-wide rewrite and outbound hero GIFs remain scheduled for later waves.
+
+### Phase 4: Wave D (2026-05-03) — CodingMemory, Memory API, distribution
+
+Completed in [Roadmap Phase 4](docs/internal/process/roadmap-phase4-automation-ecosystem.ja.md) (**Wave D 完了**): backlog **4–6**, **14**, **18** — [CodingMemory](docs/internal/design/coding-memory.ja.md), [Focused Memory API](docs/internal/design/memory-api.ja.md), [`python/liel/coding_memory.py`](python/liel/coding_memory.py) (tests + [`examples/coding_memory/`](examples/coding_memory/run_demo.py)), [Python guide § Coding memory helpers](docs/guide/connectors/python.md#coding-memory-helpers), README **Three quick demos** (fixed `demo_memory` + merge / diff / stats), [`demos/README.md`](demos/README.md) scripted trio table, [Show HN draft (JA)](docs/internal/process/show-hn-draft.ja.md), [LangGraph boundary + pseudocode](docs/internal/design/langgraph-liel.ja.md). **Not in core:** official LangGraph adapter package; **Phase 4 program** may still have open items (e.g. turnkey read-only viewer app, embedded README GIF refresh, Pages ops) per roadmap “Phase 4 完了条件”.
+
+### Phase 4: Wave E (in progress) — wrap-up task index and VHS bundle
+
+[Roadmap Phase 4](docs/internal/process/roadmap-phase4-automation-ecosystem.ja.md) names **Wave E** as the Phase 4 **wrap-up** bucket (viewer product UI, README hero GIFs, Pages, live Show HN, optional portability tape). **VHS:** distribution bundle tapes under `demos/` (merge, diff, stats as text+JSON, trace, export/import, CI `merge --dry-run --fail-on-conflict`), plus [`demos/render_gifs.py`](demos/render_gifs.py) to run **`python demos/render_gifs.py --profile bash|powershell`** and regenerate them in one go. `make_demo_files.py --extras` feeds the CI tape. See [`demos/README.md`](demos/README.md) / [`demos/README.ja.md`](demos/README.ja.md) and [GIF task plan](docs/internal/process/phase4-gif-task-plan.ja.md).
+
+### Phase 4: Wave C (2026-05-03) — CI, MCP, viewer contracts, and conventions
+
+Completed in [Roadmap Phase 4](docs/internal/process/roadmap-phase4-automation-ecosystem.ja.md) (Wave **C** backlog rows): **`liel merge --dry-run --fail-on-conflict`** (item **10**); MCP **`liel_overview`** enrichment and **`liel_diff` / `liel_merge_preview` / `liel_manifest`** (item **13**); GitHub Actions samples **`liel-memory-check.yml`** (stats) and **`liel-memory-manifest.yml`** (manifest) under `examples/github-actions/` (item **12**); reference pages **[Machine-readable surfaces](docs/reference/json-surfaces.md)**, **[Viewer JSON contract](docs/reference/viewer-json.md)**, **[Vector hybrid conventions](docs/reference/vector-conventions.md)**, and **[Schema profiles (optional)](docs/reference/schema-profiles.md)** with Japanese mirrors and MkDocs nav (items **7, 8, 11, 15, 16, 17**). User guides: [CLI merge report](docs/reference/cli-merge-report.md), [CLI guide](docs/guide/cli.md), [CI guide](docs/guide/ci.md), [MCP tools](docs/guide/mcp/tools.md), [reference index](docs/reference/index.md), [documentation taxonomy](docs/internal/process/documentation-taxonomy.ja.md) §7, [capability matrix](docs/reference/capability-matrix.md), and cross-links from [CLI JSON inventory](docs/reference/cli-json-inventory.md).
+
+### Added
+
+- **`liel trace --no-mermaid`** - Text output can omit the Mermaid diagram (path summary only); VHS `demo-trace` tapes use it for readability. Documented in [CLI guide](docs/guide/cli.md) / [CLI JSON inventory](docs/reference/cli-json-inventory.md); test in `tests/python/test_cli.py`.
+- **VHS demo bundle** - `demos/render_gifs.py` runs VHS on six distribution tapes (`--profile bash` or `powershell`): parallel-merge, diff, stats (text then JSON), trace, export/import, and merge `--dry-run --fail-on-conflict`; `make_demo_files.py --extras` supplies the CI pair. Outputs under `assets/demo/*.gif`. Documented in [`demos/README.md`](demos/README.md) / [`demos/README.ja.md`](demos/README.ja.md), [CLI guide](docs/guide/cli.md), and [post-Phase 2 roadmap](docs/internal/process/post-phase2-roadmap.ja.md).
+- **CLI `liel trace`** - Shortest-path query from the command line (`python/liel/cli/trace.py`), wired in `liel` CLI help; JSON aligns with MCP `liel_trace`. Documented in [CLI guide](docs/guide/cli.md), [CLI JSON inventory](docs/reference/cli-json-inventory.md), and [capability matrix](docs/reference/capability-matrix.md). Covered by `tests/python/test_cli.py`.
+- **Phase 4 GIF task plan** - Maintainer checklist and P0–P3 ordering for VHS
+  GIFs linked to Wave milestones (`docs/internal/process/phase4-gif-task-plan.ja.md`),
+  indexed from the Phase 4 roadmap, marketing playbook, and `demos/README.md`.
+- **CLI JSON inventory** - Cross-command overview of JSON payloads and exit
+  codes (`docs/reference/cli-json-inventory.md` and Japanese mirror), linked
+  from the reference index and capability matrix.
+- **CLI merge report reference** - Documented the stable `liel merge
+  --format json` payload (`docs/reference/cli-merge-report.md` and Japanese
+  `cli-merge-report.ja.md`), linked from the CLI guide, capability matrix,
+  reference index, and MkDocs nav.
+- **Workspace agent instructions** - Added root-level `AGENTS.md` so automated
+  assistants (including OpenAI Codex, which loads this file from the project
+  root) receive consistent guidance to use `codex-session-memory.liel` as the
+  default long-term graph memory for work in this repository.
+- **MCP playbook** - Updated the Codex-oriented section in
+  `docs/guide/mcp/agent-memory.md` and `docs/guide/mcp/agent-memory.ja.md` to
+  reference that canonical `.liel` path alongside the existing durable-memory
+  workflow.
+
+### Changed
+
+- **English public docs** - User-facing English pages no longer name Japanese-only source files or link to the internal taxonomy by path; use the [reference index](docs/reference/index.md) CLI map and the repository `docs/internal/process/` tree on GitHub for maintainer details.
+- **Documentation SSoT** - Clarified CLI doc ownership in [documentation taxonomy](docs/internal/process/documentation-taxonomy.ja.md) §7; deduplicated the
+  summary tables in [CLI JSON inventory](docs/reference/cli-json-inventory.md);
+  added a **CLI documentation map** to [reference index](docs/reference/index.md) / `index.ja.md`;
+  [Phase 4 Git-manageable design](docs/internal/design/phase4-git-manageable-agent-memory.ja.md) now points field-level details to the inventory.
+- **Phase 4 roadmap** - Consolidated maintainer planning in [Roadmap Phase 4](docs/internal/process/roadmap-phase4-automation-ecosystem.ja.md) (Wave A–D completion sections; item **19** `liel trace` in Wave B; Phase 4 program may still list viewer/GIF/Pages wrap-up). Former Phase 4 Operating Plan merged into this file (redirect-only stub remains).
+- **Phase 4 maintainer docs** - Merged [Phase 4 Current Operating Plan](docs/internal/process/phase4-current-operating-plan.ja.md)
+  into [Roadmap Phase 4](docs/internal/process/roadmap-phase4-automation-ecosystem.ja.md)
+  as a single canonical document; added update history; old Operating Plan file
+  is redirect-only. Updated cross-links and documentation taxonomy.
+- **`liel merge` text output** - Reworked the plain-text merge report for
+  clearer headings, counts, conflicts, and structured warning lines; refreshed
+  `docs/guide/cli.md` and CLI tests accordingly.
+- **`liel export` (`-o` / `--output`)** - After writing the output file, prints a
+  short text summary to stdout (source path, output path, node and edge counts).
+- **`liel stats` (text mode)** - File sizes use human-readable units (KiB/MiB/…);
+  JSON output still reports `file_size` in bytes.
+- **README** - Hero layout: headline and subhead before the merge GIF; **Why decisions disappear** section with trace GIF; etymology moved below; PyPI version badge; CI badge uses public [`hy-token/liel`](https://github.com/hy-token/liel) Actions (default branch, no `branch=` query). [`README.ja.md`](README.ja.md) mirrors badges and layout.
+
+### Versioning
+
+- **Stable 0.5.0** - Promoted the Python package from `0.5.0a1` to **`0.5.0`**;
+  the Rust crate remains **`0.5.0`** (aligned for this release).
+
+## [0.5.0a1] - 2026-05-02
+
+### Added
+
+- **Phase 4 roadmap split** - Split the post-Phase 2 roadmap into
+  phase-specific maintainer docs covering completed Phase 2/3 decisions and
+  Phase 4+ planning.
+- **Phase 4 productization plan** - Documented the Phase 4 focus on
+  Git-compatible agent working memory, CodingMemory, visual inspection, CI/CD
+  contracts, MCP/agent integration, vector conventions, and schema profiles.
+
+### Changed
+
+- **Versioning** - Started the Phase 4 alpha line with Python package version
+  `0.5.0a1`; the Rust crate moves to the base `0.5.0` version.
+
 ## [0.4.0] - 2026-05-02
 
 ### Added
@@ -729,3 +821,5 @@ First public Beta PyPI release.
 [0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9
 [0.2.10]: https://github.com/hy-token/liel/releases/tag/v0.2.10
 [0.4.0]: https://github.com/hy-token/liel/releases/tag/v0.4.0
+[0.5.0]: https://github.com/hy-token/liel/releases/tag/v0.5.0
+[0.5.0a1]: https://github.com/hy-token/liel/releases/tag/v0.5.0a1

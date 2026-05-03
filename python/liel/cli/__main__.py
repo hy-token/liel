@@ -14,6 +14,7 @@ from .merge import run as run_merge
 from .pack import run as run_pack
 from .signature import run_sign, run_verify
 from .stats import run as run_stats
+from .trace import run as run_trace
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -43,6 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
             "sign",
             "verify",
             "stats",
+            "trace",
             "export",
             "import",
         ),
@@ -80,6 +82,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Preview the merge report without writing an output file.",
+    )
+    merge_parser.add_argument(
+        "--fail-on-conflict",
+        action="store_true",
+        help="With --dry-run, exit with status 1 when can_merge is false or conflicts is non-empty.",
     )
     merge_parser.add_argument(
         "--node-key",
@@ -162,6 +169,41 @@ def build_parser() -> argparse.ArgumentParser:
     add_format_argument(stats_parser)
     stats_parser.set_defaults(func=run_stats)
     command_parsers["stats"] = stats_parser
+
+    trace_parser = subparsers.add_parser(
+        "trace",
+        help="Shortest path between two node IDs (unweighted directed hops).",
+    )
+    trace_parser.add_argument("source", help="Source .liel file.")
+    trace_parser.add_argument(
+        "--from",
+        dest="from_node",
+        type=int,
+        required=True,
+        metavar="ID",
+        help="Starting node ID.",
+    )
+    trace_parser.add_argument(
+        "--to",
+        dest="to_node",
+        type=int,
+        required=True,
+        metavar="ID",
+        help="Ending node ID.",
+    )
+    trace_parser.add_argument(
+        "--edge-label",
+        default="",
+        help="If set, only follow edges with this label (empty = any label).",
+    )
+    trace_parser.add_argument(
+        "--no-mermaid",
+        action="store_true",
+        help="Omit the Mermaid diagram from text output (path summary only).",
+    )
+    add_format_argument(trace_parser)
+    trace_parser.set_defaults(func=run_trace)
+    command_parsers["trace"] = trace_parser
 
     export_parser = subparsers.add_parser("export", help="Export a .liel file as JSON.")
     export_parser.add_argument("source", help="Source .liel file.")

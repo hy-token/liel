@@ -25,13 +25,15 @@ _EDGE_META_KEYS = {"id", "label", "from_node", "to_node"}
 
 
 def run_export(args: argparse.Namespace) -> int:
-    export_bytes = build_export_bytes(args.source)
+    payload = build_export(args.source)
+    export_bytes = _serialize_export_payload(payload)
     if args.output is None:
         emit_text(export_bytes.decode().rstrip("\n"))
     else:
         output = refuse_overwrite(args.output, force=args.force)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_bytes(export_bytes)
+        emit_text(format_export_file_text(args.source, output, payload))
     return EXIT_OK
 
 
@@ -44,8 +46,7 @@ def run_import(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def build_export_bytes(source_path: str | Path) -> bytes:
-    payload = build_export(source_path)
+def _serialize_export_payload(payload: dict[str, Any]) -> bytes:
     try:
         text = json.dumps(
             payload,
@@ -58,6 +59,22 @@ def build_export_bytes(source_path: str | Path) -> bytes:
     except ValueError as exc:
         raise CliError(f"export serialization failed: {exc}", EXIT_ERROR) from exc
     return f"{text}\n".encode()
+
+
+def build_export_bytes(source_path: str | Path) -> bytes:
+    return _serialize_export_payload(build_export(source_path))
+
+
+def format_export_file_text(
+    source_path: str | Path, output_path: Path, payload: dict[str, Any]
+) -> str:
+    return "\n".join(
+        [
+            f"Exported {source_path} to {output_path}",
+            f"Nodes: {payload['node_count']}",
+            f"Edges: {payload['edge_count']}",
+        ]
+    )
 
 
 def build_export(source_path: str | Path) -> dict[str, Any]:

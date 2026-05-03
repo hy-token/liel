@@ -104,7 +104,7 @@ When possible, also keep:
 
 ## Minimal example
 
-1. `Source(path="docs/internal/process/phase2-roadmap.ja.md")`
+1. `Source(path="docs/design/product-tradeoffs.md")`
 2. `Claim(text="pack is Tier 2 high priority")`
 3. `Source -SUPPORTS-> Claim`
 4. `Claim -OBSERVED_IN-> Session`

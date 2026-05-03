@@ -10,6 +10,21 @@ import liel
 from .common import EXIT_ERROR, EXIT_OK, CliError, emit_json, emit_text, require_existing_file
 
 
+def _human_file_size(num_bytes: int) -> str:
+    """Binary IEC units for text output; JSON still uses raw ``file_size`` bytes."""
+    if num_bytes < 0:
+        raise ValueError("file_size must be non-negative")
+    if num_bytes < 1024:
+        return f"{num_bytes} bytes"
+    size = float(num_bytes)
+    units = ("KiB", "MiB", "GiB", "TiB")
+    for i, unit in enumerate(units):
+        size /= 1024.0
+        if size < 1024.0 or i == len(units) - 1:
+            rounded = f"{size:.2f}".rstrip("0").rstrip(".")
+            return f"{rounded} {unit}"
+
+
 def run(args: argparse.Namespace) -> int:
     payload = stats_file(args.source)
     if args.format == "json":
@@ -46,7 +61,7 @@ def format_text(payload: dict[str, Any]) -> str:
     lines = [
         f"File: {payload['path']}",
         f"Format: {payload['liel_format']}",
-        f"File size: {payload['file_size']} bytes",
+        f"File size: {_human_file_size(int(payload['file_size']))}",
         f"Nodes: {payload['node_count']}",
         f"Edges: {payload['edge_count']}",
         "Node labels:",

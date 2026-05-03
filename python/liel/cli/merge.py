@@ -27,6 +27,9 @@ from .identity import (
 
 
 def run(args: argparse.Namespace) -> int:
+    fail_on_conflict = getattr(args, "fail_on_conflict", False)
+    if fail_on_conflict and not args.dry_run:
+        raise CliError("--fail-on-conflict requires --dry-run", EXIT_USAGE)
     payload = merge_files(
         args.left,
         args.right,
@@ -42,6 +45,8 @@ def run(args: argparse.Namespace) -> int:
         emit_json(payload)
     else:
         emit_text(format_text(payload))
+    if fail_on_conflict and (not payload.get("can_merge", True) or payload.get("conflicts")):
+        return EXIT_ERROR
     return EXIT_OK
 
 
@@ -119,26 +124,42 @@ def merge_files(
 def format_text(payload: dict[str, Any]) -> str:
     if payload.get("dry_run"):
         target = payload["output"] if payload["output"] is not None else "(no output path)"
-        heading = f"Dry-run merge preview for {target}"
+        heading = "Memory merge preview (dry-run)"
+        output_line = f"Output: {target}"
     else:
-        heading = f"Merged into {payload['output']}"
+        heading = "Memory merged"
+        output_line = f"Output: {payload['output']}"
+    can_merge = payload.get("can_merge", True)
+    conflicts = payload.get("conflicts", [])
+    warnings = payload.get("warnings", [])
     lines = [
         heading,
-        f"Can merge: {'yes' if payload.get('can_merge', True) else 'no'}",
-        f"Nodes: +{payload['nodes_created']} reused {payload['nodes_reused']}",
-        f"Edges: +{payload['edges_created']} reused {payload['edges_reused']}",
+        output_line,
+        f"Result: {_merge_result_text(can_merge, warnings)}",
+        "Changes:",
+        f"  Nodes: +{payload['nodes_created']} created, {payload['nodes_reused']} reused",
+        f"  Edges: +{payload['edges_created']} created, {payload['edges_reused']} reused",
+        "Review:",
+        f"  Conflicts: {len(conflicts)}",
+        f"  Warnings: {len(warnings)}",
     ]
-    conflicts = payload.get("conflicts", [])
     if conflicts:
-        lines.append(f"Conflicts: {len(conflicts)}")
+        lines.append("Conflicts:")
         lines.extend(_conflict_text_lines(conflicts))
-    warnings = payload.get("warnings", [])
     if warnings:
-        lines.append(f"Warnings: {len(warnings)}")
+        lines.append("Warnings:")
         lines.extend(_warning_text_lines(warnings[:10]))
         if len(warnings) > 10:
             lines.append(f"- ... {len(warnings) - 10} more warning(s)")
     return "\n".join(lines)
+
+
+def _merge_result_text(can_merge: bool, warnings: list[dict[str, Any]]) -> str:
+    if not can_merge:
+        return "blocked"
+    if warnings:
+        return "ready with review warnings"
+    return "ready"
 
 
 def _reject_in_place_output(left: Path, right: Path, output: Path) -> None:
@@ -714,5 +735,28 @@ def _conflict_text_lines(conflicts: list[dict[str, Any]]) -> list[str]:
 def _warning_text_lines(warnings: list[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for warning in warnings:
-        lines.append(f"- {warning['type']}: {warning['message']}")
+        if warning.get("type") == "node_property_conflict":
+            lines.extend(_node_property_warning_text_lines(warning))
+        elif warning.get("type") == "node_label_difference":
+            lines.extend(_node_label_warning_text_lines(warning))
+        else:
+            lines.append(f"- {warning['type']}: {warning['message']}")
     return lines
+
+
+def _node_property_warning_text_lines(warning: dict[str, Any]) -> list[str]:
+    return [
+        (f"- review needed: {warning['identity']} has different {warning['property']!r} values"),
+        f"  destination: {warning['destination']!r}",
+        f"  incoming:    {warning['source']!r}",
+        f"  policy:      {warning['policy']} -> {warning['resolution']}",
+    ]
+
+
+def _node_label_warning_text_lines(warning: dict[str, Any]) -> list[str]:
+    return [
+        f"- review needed: {warning['identity']} has different labels",
+        f"  destination: {warning['destination']!r}",
+        f"  incoming:    {warning['source']!r}",
+        f"  policy:      {warning['policy']} -> {warning['resolution']}",
+    ]

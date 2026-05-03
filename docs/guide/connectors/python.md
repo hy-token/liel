@@ -30,6 +30,35 @@ The runtime detects double-open and raises `liel.AlreadyOpenError` (a subclass o
 
 ---
 
+## Coding memory helpers (experimental) {#coding-memory-helpers}
+
+The submodule **`liel.coding_memory`** (Wave D) offers thin, opinionated helpers on
+top of `GraphDB` for a **coding-agent-shaped** graph: `File`, `Decision`, and
+bug-shaped `Task` nodes (`task_kind="bug"`). It does **not** change the file
+format or the Rust API.
+
+- **Source:** [`python/liel/coding_memory.py`](https://github.com/hy-token/liel/blob/main/python/liel/coding_memory.py)
+- **Runnable demo:** [`examples/coding_memory/run_demo.py`](https://github.com/hy-token/liel/blob/main/examples/coding_memory/run_demo.py)
+- **Maintainer design (Japanese):** [`docs/internal/design/coding-memory.ja.md`](https://github.com/hy-token/liel/blob/main/docs/internal/design/coding-memory.ja.md) and [`memory-api.ja.md`](https://github.com/hy-token/liel/blob/main/docs/internal/design/memory-api.ja.md)
+
+```python
+import liel
+from liel.coding_memory import link, record_bug, record_decision, record_file
+
+with liel.open("project.liel") as db:
+    with db.transaction():
+        f = record_file(db, "src/api.rs", role="entrypoint")
+        d = record_decision(db, "Bound request bodies", status="accepted")
+        b = record_bug(db, "Panic on empty body", severity="S2")
+        link(db, f, "RELATES_TO", d)
+        link(db, b, "DEPENDS_ON", f)
+    db.commit()
+```
+
+Treat the API as **experimental** until noted otherwise in the changelog.
+
+---
+
 ## Quick start
 
 ```python

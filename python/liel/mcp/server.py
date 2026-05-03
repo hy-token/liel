@@ -1,13 +1,16 @@
 """MCP server for liel - exposes the graph as AI-readable tools.
 
 Primary tools:
-  liel_overview  - schema / memory overview (labels, stats)
-  liel_find      - find nodes by label / property filter
-  liel_explore   - BFS neighbourhood around a node
-  liel_trace     - shortest path between two nodes
-  liel_map       - render a subgraph as a Mermaid diagram
-  liel_append    - append nodes and edges in one atomic commit
-  liel_merge     - merge nodes and edges in one atomic commit
+  liel_overview       - schema / memory overview (labels, counts, liel_format, file_size)
+  liel_find           - find nodes by label / property filter
+  liel_explore        - BFS neighbourhood around a node
+  liel_trace          - shortest path between two nodes
+  liel_map            - render a subgraph as a Mermaid diagram
+  liel_diff           - compare two .liel files (CLI diff JSON)
+  liel_merge_preview  - merge dry-run preview (CLI merge --dry-run JSON)
+  liel_manifest       - deterministic manifest JSON (CLI manifest stdout)
+  liel_append         - append nodes and edges in one atomic commit
+  liel_merge          - merge nodes and edges in one atomic commit (atomic DB merge)
 
 Every tool returns a JSON string. Success responses are arbitrary payloads
 specific to the tool; failures always share the same shape:
@@ -132,6 +135,7 @@ def _to_mermaid(nodes: list[Any], edges: list[Any]) -> str:
 
 
 def _do_inspect(db: Any, path: str) -> str:
+    info = db.info()
     all_nodes = db.all_nodes()
     all_edges = db.all_edges()
 
@@ -160,6 +164,10 @@ def _do_inspect(db: Any, path: str) -> str:
         "edge_labels": edge_labels,
         "sample_nodes": samples,
         "db_path": path,
+        # Same `version` / `file_size` semantics as `liel stats --format json`
+        # (no separate MCP tool; keep the tool surface small).
+        "liel_format": info["version"],
+        "file_size": info["file_size"],
     }
     return json.dumps(result, ensure_ascii=False, default=str)
 
@@ -254,24 +262,20 @@ def _do_path(
     if not isinstance(to_node, int) or to_node <= 0:
         return _err("invalid_node_id", "'to_node' must be a positive integer")
 
-    el = edge_label if edge_label else None
-    node_path = db.shortest_path(from_node, to_node, el)
+    from liel.cli.trace import build_trace_payload
 
-    if node_path is None:
-        return json.dumps({"path": None})
+    try:
+        payload = build_trace_payload(
+            db,
+            from_node=from_node,
+            to_node=to_node,
+            edge_label=edge_label or "",
+            source_path="",
+        )
+    except Exception as exc:  # noqa: BLE001 — surface as MCP error JSON
+        return _err("trace_failed", str(exc))
 
-    path_ids = {n.id for n in node_path}
-    edge_records = db.edges_between(path_ids)
-    if el:
-        edge_records = [e for e in edge_records if e.get("label") == el]
-
-    edges = _records_to_edges(edge_records)
-
-    result = {
-        "path": [_node_to_dict(n) for n in node_path],
-        "mermaid": _to_mermaid(node_path, edges),
-    }
-    return json.dumps(result, ensure_ascii=False, default=str)
+    return json.dumps(payload, ensure_ascii=False, default=str)
 
 
 def _do_mermaid(
@@ -654,6 +658,128 @@ def _do_merge(
     )
 
 
+def _mcp_from_cli_error(exc: Any) -> str:
+    from liel.cli.common import EXIT_USAGE, CliError
+
+    if not isinstance(exc, CliError):
+        return _err("error", str(exc))
+    code = "usage_error" if exc.exit_code == EXIT_USAGE else "error"
+    return _err(code, exc.message)
+
+
+def _parse_node_key_json(node_key_json: str) -> tuple[list[str] | None, str | None]:
+    """Returns (node_key list or None, error response or None)."""
+    stripped = node_key_json.strip()
+    if not stripped:
+        return None, None
+    try:
+        parsed = json.loads(stripped)
+    except json.JSONDecodeError as exc:
+        return None, _err("invalid_json", f"node_key_json must be JSON: {exc}")
+    if not isinstance(parsed, list) or not all(isinstance(x, str) for x in parsed):
+        return None, _err(
+            "invalid_node_key_json",
+            "node_key_json must be a JSON array of strings (property names)",
+        )
+    return parsed, None
+
+
+def mcp_diff_files(
+    left_path: str,
+    right_path: str,
+    *,
+    node_key_json: str = "",
+    identity_rules_path: str = "",
+) -> str:
+    """Run CLI diff for two files; JSON matches ``liel diff --format json``."""
+    from liel.cli import diff as diff_mod
+
+    node_key, nk_err = _parse_node_key_json(node_key_json)
+    if nk_err is not None:
+        return nk_err
+
+    ir = identity_rules_path.strip() or None
+    from liel.cli.common import CliError
+
+    try:
+        report = diff_mod.diff_files(
+            left_path,
+            right_path,
+            node_key=node_key,
+            identity_rules=ir,
+        )
+    except CliError as exc:
+        return _mcp_from_cli_error(exc)
+    except Exception as exc:
+        return _err("error", str(exc))
+    return json.dumps(report, ensure_ascii=False, sort_keys=True)
+
+
+def mcp_merge_preview(
+    left_path: str,
+    right_path: str,
+    *,
+    output_path: str = "",
+    node_key_json: str = "",
+    identity_rules_path: str = "",
+    edge_strategy: str = "append",
+    on_node_conflict: str = "keep_dst",
+) -> str:
+    """Merge preview only; payload matches ``liel merge --dry-run --format json``."""
+    from liel.cli import merge as merge_mod
+
+    node_key, nk_err = _parse_node_key_json(node_key_json)
+    if nk_err is not None:
+        return nk_err
+
+    ir = identity_rules_path.strip() or None
+    out: str | pathlib.Path | None = output_path.strip() or None
+
+    if edge_strategy not in ("append", "idempotent"):
+        return _err(
+            "invalid_edge_strategy",
+            "edge_strategy must be 'append' or 'idempotent'",
+        )
+    if on_node_conflict not in ("keep_dst", "overwrite_from_src", "merge_props"):
+        return _err(
+            "invalid_on_node_conflict",
+            "on_node_conflict must be keep_dst, overwrite_from_src, or merge_props",
+        )
+
+    from liel.cli.common import CliError
+
+    try:
+        payload = merge_mod.merge_files(
+            left_path,
+            right_path,
+            out,
+            dry_run=True,
+            node_key=node_key,
+            identity_rules=ir,
+            edge_strategy=edge_strategy,
+            on_node_conflict=on_node_conflict,
+        )
+    except CliError as exc:
+        return _mcp_from_cli_error(exc)
+    except Exception as exc:
+        return _err("error", str(exc))
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def mcp_manifest_json(source_path: str) -> str:
+    """Deterministic manifest object (same as CLI ``liel manifest`` JSON body)."""
+    from liel.cli import manifest as manifest_mod
+    from liel.cli.common import CliError
+
+    try:
+        payload = manifest_mod.build_manifest(source_path)
+    except CliError as exc:
+        return _mcp_from_cli_error(exc)
+    except Exception as exc:
+        return _err("error", str(exc))
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
 def create_server(path: str | None = None) -> Any:
     FastMCP = _require_mcp()
 
@@ -684,14 +810,19 @@ def create_server(path: str | None = None) -> Any:
         instructions=(
             "liel AI memory MCP server - connected to "
             f"{os.path.basename(path)}. Official tools: liel_overview, "
-            "liel_find, liel_explore, liel_trace, liel_map, "
-            "liel_append, liel_merge."
+            "liel_find, liel_explore, liel_trace, liel_map, liel_diff, "
+            "liel_merge_preview, liel_manifest, liel_append, liel_merge "
+            "(liel_merge is atomic DB merge; liel_merge_preview is two-file preview)."
         ),
     )
 
     @mcp.tool()
     def liel_overview() -> str:
-        """Return a high-level overview of the memory graph."""
+        """Return a high-level overview of the memory graph.
+
+        Includes `liel_format` and `file_size` (same meaning as CLI `liel stats` JSON)
+        so agents do not need a separate stats tool.
+        """
         return _do_inspect(db, path)
 
     @mcp.tool()
@@ -726,6 +857,63 @@ def create_server(path: str | None = None) -> Any:
     def liel_map(node_ids: str = "", limit: int = _MERMAID_LIMIT_DEFAULT) -> str:
         """Render a portion of the graph as a Mermaid flowchart diagram."""
         return _do_mermaid(db, node_ids=node_ids, limit=limit)
+
+    @mcp.tool()
+    def liel_diff(
+        left: str,
+        right: str,
+        node_key_json: str = "",
+        identity_rules_path: str = "",
+    ) -> str:
+        """Compare two `.liel` files. JSON matches CLI ``liel diff --format json``.
+
+        Args:
+            left: Path to the left (base) `.liel` file.
+            right: Path to the right `.liel` file.
+            node_key_json: Optional JSON array of property names for key-aware diff,
+                e.g. ``["path"]``. Empty string means ID-based diff.
+            identity_rules_path: Optional path to identity-rules JSON (mutually
+                exclusive with node_key_json).
+        """
+        return mcp_diff_files(
+            left,
+            right,
+            node_key_json=node_key_json,
+            identity_rules_path=identity_rules_path,
+        )
+
+    @mcp.tool()
+    def liel_merge_preview(
+        left: str,
+        right: str,
+        output_path: str = "",
+        node_key_json: str = "",
+        identity_rules_path: str = "",
+        edge_strategy: str = "append",
+        on_node_conflict: str = "keep_dst",
+    ) -> str:
+        """Two-file merge preview only (dry-run). Same JSON as ``liel merge --dry-run``.
+
+        Not the same as ``liel_merge`` (atomic merge into the open database).
+        """
+        return mcp_merge_preview(
+            left,
+            right,
+            output_path=output_path,
+            node_key_json=node_key_json,
+            identity_rules_path=identity_rules_path,
+            edge_strategy=edge_strategy,
+            on_node_conflict=on_node_conflict,
+        )
+
+    @mcp.tool()
+    def liel_manifest(source: str = "") -> str:
+        """Return deterministic manifest JSON (same object as CLI ``liel manifest``).
+
+        If ``source`` is empty, uses the server's connected `.liel` path.
+        """
+        use_path = source.strip() or path
+        return mcp_manifest_json(use_path)
 
     @mcp.tool()
     def liel_append(

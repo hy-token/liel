@@ -1,6 +1,6 @@
 # Feature list (cheat sheet)
 
-A quick reference of what `liel` provides. For API details, see the [Python API](../guide/connectors/python.md).
+A quick reference of what `liel` provides. For a **stakeholder-oriented map** (audience and value by area), see the [capability matrix](capability-matrix.md). For API details, see the [Python API](../guide/connectors/python.md).
 
 The **deliberate non-goals** (with considered alternatives, why-rejected, why-chosen) live in [product trade-offs](../design/product-tradeoffs.md).
 

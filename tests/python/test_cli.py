@@ -85,6 +85,179 @@ def test_cli_help_prints_stats_help(capsys):
     assert "--format" in out
 
 
+def test_cli_help_prints_trace_help(capsys):
+    assert cli.main(["help", "trace"]) == 0
+    out = capsys.readouterr().out
+    assert "usage: liel trace" in out
+    assert "--from" in out
+    assert "--to" in out
+
+
+def test_cli_trace_finds_path_and_json(tmp_path, capsys):
+    path = tmp_path / "g.liel"
+    with liel.open(str(path)) as db:
+        a = db.add_node(["N"], name="A")
+        b = db.add_node(["N"], name="B")
+        c = db.add_node(["N"], name="C")
+        db.add_edge(a, "NEXT", b)
+        db.add_edge(b, "NEXT", c)
+        db.commit()
+    a_id, b_id, c_id = a.id, b.id, c.id
+
+    assert (
+        cli.main(
+            [
+                "trace",
+                str(path),
+                "--from",
+                str(a_id),
+                "--to",
+                str(c_id),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["from_node"] == a_id
+    assert payload["to_node"] == c_id
+    assert len(payload["path"]) == 3
+    assert [n["id"] for n in payload["path"]] == [a_id, b_id, c_id]
+    assert "mermaid" in payload
+    assert "graph LR" in payload["mermaid"]
+    assert payload["path_hop_labels"] == ["NEXT", "NEXT"]
+    assert isinstance(payload["reasoning_branches"], list)
+    assert len(payload["reasoning_branches"]) == 1
+
+
+def test_cli_trace_text_skips_mermaid_with_no_mermaid(tmp_path, capsys):
+    path = tmp_path / "g.liel"
+    with liel.open(str(path)) as db:
+        a = db.add_node(["N"], name="A")
+        b = db.add_node(["N"], name="B")
+        db.add_edge(a, "NEXT", b)
+        db.commit()
+    a_id, b_id = a.id, b.id
+
+    assert (
+        cli.main(
+            [
+                "trace",
+                str(path),
+                "--from",
+                str(a_id),
+                "--to",
+                str(b_id),
+                "--no-mermaid",
+            ]
+        )
+        == 0
+    )
+    out = capsys.readouterr().out
+    assert "Trace:" in out
+    assert "Path:" in out
+    assert "Mermaid:" not in out
+    assert "graph LR" not in out
+
+
+def test_cli_trace_respects_edge_label_filter(tmp_path, capsys):
+    path = tmp_path / "g.liel"
+    with liel.open(str(path)) as db:
+        a = db.add_node(["N"])
+        b = db.add_node(["N"])
+        c = db.add_node(["N"])
+        db.add_edge(a, "R1", b)
+        db.add_edge(b, "R2", c)
+        db.commit()
+    a_id, c_id = a.id, c.id
+
+    assert (
+        cli.main(
+            [
+                "trace",
+                str(path),
+                "--from",
+                str(a_id),
+                "--to",
+                str(c_id),
+                "--edge-label",
+                "R1",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    assert json.loads(capsys.readouterr().out)["path"] is None
+
+
+def test_cli_trace_billing_story_narrative_text(tmp_path, capsys):
+    """Narrative trace output for trace-why-postgres demo graph."""
+    repo_root = Path(__file__).resolve().parents[2]
+    script = repo_root / "examples" / "demo_memory" / "make_demo_files.py"
+    subprocess.run(
+        [sys.executable, str(script), "--force", "--out", str(tmp_path)],
+        cwd=repo_root,
+        check=True,
+    )
+    graph = tmp_path / "trace-why-postgres.liel"
+    assert cli.main(["trace", str(graph), "--from", "1", "--to", "7", "--no-mermaid"]) == 0
+    out = capsys.readouterr().out
+    assert "Why PostgreSQL for billing?" in out
+    assert "Decision found:" in out
+    assert "Choose PostgreSQL for billing" in out
+    assert "Why:" in out and "✓" in out
+    assert "Key factors:" in out
+    assert "Duplicate charge incident" in out
+    assert "Audit trail requirement" in out
+    assert "ACID transactions" in out
+    assert "Rejected:" in out
+    assert "DynamoDB" in out
+    assert "better for scale, not for this use case" in out
+    assert "Implemented in:" in out
+    assert "billing/db.py" in out
+
+
+def test_trace_why_postgres_demo_graph_shortest_path(tmp_path):
+    """Billing trace scenario: task → PostgreSQL option → decision → file (4 nodes)."""
+    repo_root = Path(__file__).resolve().parents[2]
+    script = repo_root / "examples" / "demo_memory" / "make_demo_files.py"
+    subprocess.run(
+        [sys.executable, str(script), "--force", "--out", str(tmp_path)],
+        cwd=repo_root,
+        check=True,
+    )
+    path = tmp_path / "trace-why-postgres.liel"
+    with liel.open(str(path)) as db:
+        sp = db.shortest_path(1, 7, None)
+        assert sp is not None
+        assert [n.id for n in sp] == [1, 2, 6, 7]
+        branches = db.out_edges(1)
+        assert len(branches) == 4
+
+
+def test_cli_trace_rejects_nonpositive_node_ids(tmp_path, capsys):
+    p = tmp_path / "h.liel"
+    with liel.open(str(p)) as db:
+        n = db.add_node(["N"])
+        db.commit()
+    n_id = n.id
+    assert (
+        cli.main(
+            [
+                "trace",
+                str(p),
+                "--from",
+                "0",
+                "--to",
+                str(n_id),
+            ]
+        )
+        == 2
+    )
+
+
 def test_cli_help_prints_export_and_import_help(capsys):
     assert cli.main(["help", "export"]) == 0
     export_out = capsys.readouterr().out
@@ -384,10 +557,11 @@ def test_cli_merge_prints_text_report(capsys, monkeypatch):
 
     assert cli.main(["merge", "left.liel", "right.liel", "-o", "merged.liel"]) == 0
     out = capsys.readouterr().out
-    assert "Merged into merged.liel" in out
-    assert "Can merge: yes" in out
-    assert "Nodes: +2 reused 1" in out
-    assert "Edges: +1 reused 0" in out
+    assert "Memory merged" in out
+    assert "Output: merged.liel" in out
+    assert "Result: ready" in out
+    assert "  Nodes: +2 created, 1 reused" in out
+    assert "  Edges: +1 created, 0 reused" in out
 
 
 def test_cli_merge_prints_json_report(capsys, monkeypatch):
@@ -430,8 +604,9 @@ def test_cli_merge_dry_run_prints_preview_without_output(capsys, monkeypatch):
 
     assert cli.main(["merge", "left.liel", "right.liel", "--dry-run"]) == 0
     out = capsys.readouterr().out
-    assert "Dry-run merge preview for (no output path)" in out
-    assert "Nodes: +2 reused 1" in out
+    assert "Memory merge preview (dry-run)" in out
+    assert "Output: (no output path)" in out
+    assert "  Nodes: +2 created, 1 reused" in out
 
 
 def test_cli_merge_dry_run_does_not_create_output(tmp_path, capsys):
@@ -500,6 +675,58 @@ def test_cli_merge_dry_run_reports_missing_node_key_conflict(tmp_path, capsys):
     assert payload["conflicts"][0]["type"] == "missing_node_key"
     assert payload["conflicts"][0]["side"] == "source"
     assert payload["node_id_map"] == {}
+
+
+def test_cli_merge_fail_on_conflict_requires_dry_run(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], tag="B")
+        db.commit()
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                str(left),
+                str(right),
+                "-o",
+                str(tmp_path / "out.liel"),
+                "--fail-on-conflict",
+            ]
+        )
+        == 2
+    )
+    assert "--fail-on-conflict requires --dry-run" in capsys.readouterr().err
+
+
+def test_cli_merge_fail_on_conflict_exits_when_blocked(tmp_path, capsys):
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        db.add_node(["Item"], tag="A")
+        db.commit()
+    with liel.open(str(right)) as db:
+        db.add_node(["Item"], name="missing")
+        db.commit()
+
+    argv = [
+        "merge",
+        str(left),
+        str(right),
+        "--node-key",
+        "tag",
+        "--dry-run",
+        "--fail-on-conflict",
+        "--format",
+        "json",
+    ]
+    assert cli.main(argv) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["can_merge"] is False
 
 
 def test_cli_merge_dry_run_reports_duplicate_destination_key_conflict(tmp_path, capsys):
@@ -600,8 +827,11 @@ def test_cli_merge_dry_run_prints_warning_summary(tmp_path, capsys):
         == 0
     )
     out = capsys.readouterr().out
-    assert "Warnings: 1" in out
-    assert "node_property_conflict" in out
+    assert "Result: ready with review warnings" in out
+    assert "  Warnings: 1" in out
+    assert "- review needed: tag='A' has different 'status' values" in out
+    assert "destination: 'open'" in out
+    assert "incoming:    'closed'" in out
 
 
 def test_cli_merge_node_key_edge_strategy_and_merge_props_options(tmp_path, capsys):
@@ -1154,6 +1384,7 @@ def test_cli_stats_prints_text_summary(tmp_path, capsys):
     assert cli.main(["stats", str(source)]) == 0
     out = capsys.readouterr().out
     assert f"File: {source}" in out
+    assert "File size:" in out
     assert "Nodes: 2" in out
     assert "Edges: 1" in out
     assert "  Person: 2" in out
@@ -1186,6 +1417,21 @@ def test_stats_file_sorts_label_counts(tmp_path):
 
     payload = cli_stats.stats_file(source)
     assert list(payload["node_labels"]) == ["Alpha", "Zed"]
+
+
+def test_stats_format_text_uses_human_file_sizes():
+    base = {
+        "path": "/tmp/x.liel",
+        "liel_format": "1.0",
+        "node_count": 0,
+        "edge_count": 0,
+        "node_labels": {},
+        "edge_labels": {},
+    }
+    assert "500 bytes" in cli_stats.format_text({**base, "file_size": 500})
+    assert "1 KiB" in cli_stats.format_text({**base, "file_size": 1024})
+    assert "1.5 KiB" in cli_stats.format_text({**base, "file_size": 1536})
+    assert "1 MiB" in cli_stats.format_text({**base, "file_size": 1024 * 1024})
 
 
 def test_export_json_matches_expected_deterministic_shape(tmp_path):
@@ -1238,7 +1484,7 @@ def test_export_json_matches_expected_deterministic_shape(tmp_path):
     )
 
 
-def test_cli_export_writes_json_file(tmp_path):
+def test_cli_export_writes_json_file(tmp_path, capsys):
     source = tmp_path / "source.liel"
     output = tmp_path / "graph.json"
     with liel.open(str(source)) as db:
@@ -1246,6 +1492,10 @@ def test_cli_export_writes_json_file(tmp_path):
         db.commit()
 
     assert cli.main(["export", str(source), "-o", str(output)]) == 0
+    summary = capsys.readouterr().out
+    assert "Exported" in summary and str(output) in summary
+    assert "Nodes: 1" in summary
+    assert "Edges: 0" in summary
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["export_version"] == 1
     assert payload["nodes"][0]["properties"] == {"path": "docs/guide/cli.md"}

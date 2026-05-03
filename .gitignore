@@ -41,8 +41,9 @@ Thumbs.db
 *.swp
 *.swo
 
-# liel test database files
-*.liel
+# Local liel scratch files
+.mcp-surface-*.liel
+*.liel.lock/
 
 # MkDocs
 /site/

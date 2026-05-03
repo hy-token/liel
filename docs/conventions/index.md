@@ -8,6 +8,11 @@ and they are not enforced by the Rust core.
 1. [Recommended labels](recommended-labels.md) - starter vocabulary plus naming/normalization basics  
 2. [Provenance conventions](provenance.md) - source tracking workflow
 
+## Optional (advanced)
+
+- [Vector hybrid conventions](../reference/vector-conventions.md) - referencing external embeddings alongside `liel` nodes (not enforced by the core)  
+- [Schema profiles (optional)](../reference/schema-profiles.md) - per-label expectations for validators and team linting
+
 `canonicalization.md` is kept for compatibility and now points to the merged
 rules in `recommended-labels.md`.
 

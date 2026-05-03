@@ -15,6 +15,9 @@ from liel.mcp.server import (
     _do_mermaid,
     _do_path,
     _do_query,
+    mcp_diff_files,
+    mcp_manifest_json,
+    mcp_merge_preview,
 )
 
 
@@ -49,6 +52,8 @@ class TestDoInspect:
         assert result["edge_labels"] == {}
         assert result["sample_nodes"] == []
         assert result["db_path"] == ":memory:"
+        assert result["liel_format"] == empty_db.info()["version"]
+        assert result["file_size"] == empty_db.info()["file_size"]
 
     def test_populated_graph_counts(self, simple_db):
         db, *_ = simple_db
@@ -270,3 +275,72 @@ class TestDoMerge:
         refreshed = db.get_node(alice.id)
         assert refreshed is not None
         assert refreshed.properties["team"] == "core"
+
+
+class TestMcpCliBridge:
+    def test_mcp_diff_two_files(self, tmp_path):
+        left = tmp_path / "a.liel"
+        right = tmp_path / "b.liel"
+        with liel.open(str(left)) as db:
+            db.add_node(["X"], k=1)
+            db.commit()
+        with liel.open(str(right)) as db:
+            db.add_node(["X"], k=2)
+            db.commit()
+
+        raw = mcp_diff_files(str(left), str(right))
+        data = json.loads(raw)
+        assert data["changed"] is True
+
+    def test_mcp_diff_invalid_node_key_json(self, tmp_path):
+        left = tmp_path / "a.liel"
+        right = tmp_path / "b.liel"
+        with liel.open(str(left)) as db:
+            db.commit()
+        with liel.open(str(right)) as db:
+            db.commit()
+        raw = mcp_diff_files(str(left), str(right), node_key_json="not-json")
+        data = json.loads(raw)
+        assert data["error"]["code"] == "invalid_json"
+
+    def test_mcp_diff_usage_error_both_key_modes(self, tmp_path):
+        left = tmp_path / "a.liel"
+        right = tmp_path / "b.liel"
+        with liel.open(str(left)) as db:
+            db.commit()
+        with liel.open(str(right)) as db:
+            db.commit()
+        ir = tmp_path / "rules.json"
+        ir.write_text("{}", encoding="utf-8")
+        raw = mcp_diff_files(
+            str(left),
+            str(right),
+            node_key_json='["k"]',
+            identity_rules_path=str(ir),
+        )
+        data = json.loads(raw)
+        assert data["error"]["code"] == "usage_error"
+
+    def test_mcp_merge_preview(self, tmp_path):
+        left = tmp_path / "a.liel"
+        right = tmp_path / "b.liel"
+        with liel.open(str(left)) as db:
+            db.add_node(["T"], n=1)
+            db.commit()
+        with liel.open(str(right)) as db:
+            db.add_node(["T"], n=2)
+            db.commit()
+        raw = mcp_merge_preview(str(left), str(right))
+        data = json.loads(raw)
+        assert data["dry_run"] is True
+        assert "can_merge" in data
+
+    def test_mcp_manifest(self, tmp_path):
+        p = tmp_path / "m.liel"
+        with liel.open(str(p)) as db:
+            db.add_node(["A"], x=1)
+            db.commit()
+        raw = mcp_manifest_json(str(p))
+        data = json.loads(raw)
+        assert data["manifest_version"] == 1
+        assert len(data["nodes"]) == 1

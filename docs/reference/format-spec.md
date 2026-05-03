@@ -1,6 +1,6 @@
 # On-disk format
 
-The public English reference for reading and writing `.liel` files at the byte level. This document is the canonical reference for byte layout, format invariants, WAL entry structure, extent chains, and compatibility rules. It pairs with the maintainer source `format-spec.ja.md`; both share the same basename and cover the same concern.
+The public English reference for reading and writing `.liel` files at the byte level. This document is the canonical reference for byte layout, format invariants, WAL entry structure, extent chains, and compatibility rules. If the repository contains a parallel maintainer copy for the same byte contract, keep its scope aligned with this page when editing.
 
 For the high-level picture and data model, see **[architecture overview](../design/architecture.md)**. For the rationale of fixed decisions and the explicit product trade-offs, see **[product trade-offs](../design/product-tradeoffs.md)**.
 

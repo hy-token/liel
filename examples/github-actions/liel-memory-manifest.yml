@@ -1,0 +1,46 @@
+# Sample workflow: print deterministic `liel manifest` JSON for every tracked
+# `.liel` file (fingerprint for Git / release checks). Pair with
+# `liel-memory-check.yml` for `liel stats` if you want both.
+#
+# Copy to `.github/workflows/` in your repository. Adjust branch names and the
+# pip version constraint to match your project.
+#
+# Guide: docs/guide/ci.md
+
+name: Liel memory manifest
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install liel
+        run: pip install "liel>=0.5.0,<1"
+
+      - name: Run liel manifest on tracked .liel files
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r -d '' f; do
+            count=$((count + 1))
+            echo "::group::liel manifest -- $f"
+            liel manifest "$f" --format json
+            echo "::endgroup::"
+          done < <(git ls-files -z -- '*.liel')
+          if [ "$count" -eq 0 ]; then
+            echo "No tracked .liel files; nothing to check."
+          fi

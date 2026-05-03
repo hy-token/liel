@@ -23,6 +23,7 @@ The docs are split by audience, not by importance:
 | AI-tool integrators | [MCP guide](guide/mcp/index.md) and [AI memory playbook](guide/mcp/agent-memory.md) | Tool setup and operating rules |
 | Teams sharing `.liel` files | [Conventions](conventions/index.md) | Recommended labels and canonicalization habits |
 | Connector / format authors | [Format spec](reference/format-spec.md) | Byte layout and compatibility invariants |
+| CI, dashboards, and ecosystem tools | [Machine-readable surfaces](reference/json-surfaces.md) and [Viewer JSON contract](reference/viewer-json.md) | Which JSON contract to use; no raw `.liel` in the browser as the primary path |
 | Contributors and reviewers | [Architecture](design/architecture.md) and [Product trade-offs](design/product-tradeoffs.md) | System shape and design rationale |
 
 ### Curious first-time reader
@@ -63,6 +64,7 @@ Start with **[format spec](reference/format-spec.md)** for byte layout, **[Pytho
 - [Design entry point](design/index.md) - philosophy and trade-offs
 - [Conventions](conventions/index.md) - recommended labels and sharing habits
 - [Behavior and specifications](reference/index.md) - features, reliability, and byte format
+- [Capability matrix](reference/capability-matrix.md) - stakeholder overview (core, CLI, MCP, docs)
 - [Feature list](reference/features.md) - what is provided at a glance
 - [Reliability and failure model](reference/reliability.md) - commit semantics, crash recovery, and repair guidance
 - [Product trade-offs](design/product-tradeoffs.md) - what liel does, what it does not do, and why
@@ -87,7 +89,7 @@ Primary sources of truth:
 - The commit/fsync/recovery contract lives in **[reliability](reference/reliability.md)**.
 - AI tool operating rules live in **[AI memory playbook](guide/mcp/agent-memory.md)**.
 - Product decisions and explicit non-goals live in **[product trade-offs](design/product-tradeoffs.md)**.
-- Folder layout and the **document-role SSOT index** (section 7) are described in the **[documentation taxonomy](https://github.com/hy-token/liel/blob/main/docs/internal/process/documentation-taxonomy.ja.md)** in the repository (not part of this site build).
+- Folder layout and the **document-role SSOT index** (section 7) are described alongside other maintainer process docs in **[docs/internal/process/](https://github.com/hy-token/liel/tree/main/docs/internal/process)** on GitHub (not part of this site build).
 
 ---
 
