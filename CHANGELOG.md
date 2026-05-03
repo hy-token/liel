@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-05-05
+
+### Fixed
+
+- **PyPI project description** - README hero GIFs use absolute `raw.githubusercontent.com` URLs (`hy-token/liel/main/assets/demo/…`) so images render on PyPI; relative paths failed. [`README.md`](README.md) and [`README.ja.md`](README.ja.md).
+
+### Versioning
+
+- **0.5.2** - Python package and Rust crate **`0.5.2`**.
+
 ## [0.5.1] - 2026-05-04
 
 ### Changed
@@ -831,6 +841,7 @@ First public Beta PyPI release.
 [0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9
 [0.2.10]: https://github.com/hy-token/liel/releases/tag/v0.2.10
 [0.4.0]: https://github.com/hy-token/liel/releases/tag/v0.4.0
+[0.5.2]: https://github.com/hy-token/liel/releases/tag/v0.5.2
 [0.5.1]: https://github.com/hy-token/liel/releases/tag/v0.5.1
 [0.5.0]: https://github.com/hy-token/liel/releases/tag/v0.5.0
 [0.5.0a1]: https://github.com/hy-token/liel/releases/tag/v0.5.0a1

@@ -8,7 +8,7 @@
 
 One local file you can merge, diff, trace, and inspect.
 
-![Parallel merge preview: two agent memories merged with `liel merge --dry-run`](assets/demo/parallel-merge.wsl.gif)
+![Parallel merge preview: two agent memories merged with `liel merge --dry-run`](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/parallel-merge.wsl.gif)
 
 ```bash
 pip install liel
@@ -25,7 +25,7 @@ The core is a small Rust **property graph** engine with **Python (PyO3)** bindin
 
 Chat turns roll off the context window, but the graph still holds *how* a choice was reached. `liel trace` walks a shortest path so that reasoning stays visible—not just the final answer.
 
-![`liel trace` narrative output (shortest path through decision nodes)](assets/demo/demo-trace.wsl.gif)
+![`liel trace` narrative output (shortest path through decision nodes)](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/demo-trace.wsl.gif)
 
 The name *liel* comes from the French *lier* — to connect, to bind.
 
