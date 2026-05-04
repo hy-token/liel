@@ -7,12 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-05-05
+
+### Fixed
+
+- **MkDocs / GitHub Pages** — Remove `theme.custom_dir: overrides` so CI no longer fails when **`overrides/`** is missing on a synced checkout (`custom_dir` path must exist). **Google Search Console** `google-site-verification` meta is injected after build by **[`mkdocs_hooks.py`](mkdocs_hooks.py)** (`on_post_build`).
+
+### Changed
+
+- **Docs tooling** — **`requirements-dev.txt`**: **`mkdocs>=1.6`** (hooks). **[`scripts/release/sync_manifest.txt`](scripts/release/sync_manifest.txt)** includes **`mkdocs_hooks.py`** for copying into the public repo. **[`.github/workflows/docs-pages.yml`](.github/workflows/docs-pages.yml)** path filter includes **`mkdocs_hooks.py`**.
+
+### Versioning
+
+- **0.6.3** — Python package and Rust crate **`0.6.3`**.
+
 ## [0.6.2] - 2026-05-05
 
 ### Added
 
 - **Local coding-agent workflow** — [`docs/internal/process/local-agent-liel-workflow.ja.md`](docs/internal/process/local-agent-liel-workflow.ja.md) describes keeping [`codex-session-memory.liel`](codex-session-memory.liel) in the loop locally (Cursor rule template, MCP, importer). Template [`docs/internal/templates/cursor-rule-liel-memory.mdc`](docs/internal/templates/cursor-rule-liel-memory.mdc) and [`scripts/memory/copy_cursor_liel_rule.ps1`](scripts/memory/copy_cursor_liel_rule.ps1) / [`copy_cursor_liel_rule.sh`](scripts/memory/copy_cursor_liel_rule.sh) install `.cursor/rules/liel-memory.mdc` (gitignored).
-- **MkDocs theme override** — [`overrides/main.html`](overrides/main.html) injects **Google Search Console** `google-site-verification` meta on the docs homepage only; [`mkdocs.yml`](mkdocs.yml) sets `theme.custom_dir: overrides`.
+- **MkDocs / Search Console** — Homepage **`google-site-verification`** meta for indexing (Material **`overrides/main.html`** + **`theme.custom_dir`** in this release; later revised — see **[Unreleased]**).
 
 ### Changed
 
@@ -890,6 +904,7 @@ First public Beta PyPI release.
 [0.4.0]: https://github.com/hy-token/liel/releases/tag/v0.4.0
 [0.6.1]: https://github.com/hy-token/liel/releases/tag/v0.6.1
 [0.6.2]: https://github.com/hy-token/liel/releases/tag/v0.6.2
+[0.6.3]: https://github.com/hy-token/liel/releases/tag/v0.6.3
 [0.6.0]: https://github.com/hy-token/liel/releases/tag/v0.6.0
 [0.5.2]: https://github.com/hy-token/liel/releases/tag/v0.5.2
 [0.5.1]: https://github.com/hy-token/liel/releases/tag/v0.5.1

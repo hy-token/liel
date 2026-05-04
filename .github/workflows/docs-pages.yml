@@ -19,6 +19,7 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
+      - "mkdocs_hooks.py"
       - ".github/workflows/docs-pages.yml"
   workflow_dispatch:
 

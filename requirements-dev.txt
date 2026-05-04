@@ -45,7 +45,8 @@ ruff>=0.5,<1.0
 # mkdocs: static site generator for Markdown files under docs/. Use
 # `mkdocs serve` for local previews and `mkdocs build --strict` for strict
 # link and configuration checks. CI uses the same build command.
-mkdocs>=1.5,<2.0
+# MkDocs 1.6+: project hooks (mkdocs_hooks.py) for Pages meta injection.
+mkdocs>=1.6,<2.0
 
 # mkdocs-material: Material Design-based theme used by mkdocs.yml via
 # `theme: name: material`.

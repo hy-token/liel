@@ -19,9 +19,13 @@ edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: site
 
+# Google Search Console meta tag is injected after build (see mkdocs_hooks.py)
+# so we do not require theme.custom_dir / overrides/ in every synced checkout.
+hooks:
+  - mkdocs_hooks.py
+
 theme:
   name: material
-  custom_dir: overrides
   language: en
   palette:
     - scheme: default
