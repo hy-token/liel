@@ -21,6 +21,7 @@ site_dir: site
 
 theme:
   name: material
+  custom_dir: overrides
   language: en
   palette:
     - scheme: default
@@ -91,12 +92,14 @@ nav:
       - Viewer JSON contract: reference/viewer-json.md
       - Vector hybrid conventions: reference/vector-conventions.md
       - Schema profiles (optional): reference/schema-profiles.md
+  - Samples:
+      - Sample viewer (read-only): guide/sample-viewer.md
+      - Example Python scripts: samples/example-scripts.md
   - Use liel:
       - Overview: guide/index.md
       - Quickstart: guide/quickstart.md
       - Command line: guide/cli.md
       - CI / GitHub Actions: guide/ci.md
-      - Sample viewer (read-only): guide/sample-viewer.md
       - APIs and integrations:
           - Overview: guide/connectors/index.md
           - Python: guide/connectors/python.md

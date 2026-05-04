@@ -77,6 +77,7 @@ Start with **[format spec](reference/format-spec.md)** for byte layout, **[Pytho
 |---|---|
 | **[Why liel](why-liel.md)** | New users deciding whether this solves their AI memory problem |
 | **[Guide](guide/index.md)** | Application and tool users using Python or MCP |
+| **[Samples](samples/example-scripts.md)** | Sample viewer, `examples/` Python scripts, and repo demos |
 | **[Conventions](conventions/index.md)** | Teams and tools sharing `.liel` files |
 | **[Reference](reference/index.md)** | Users and connector authors checking behavior and file compatibility |
 | **[Design](design/index.md)** | Anyone reviewing architecture, scope, and trade-offs |

@@ -5,12 +5,21 @@
 #
 # Published URL (project pages): https://hy-token.github.io/liel/
 # Must match mkdocs.yml `site_url`.
+#
+# Only `main` push (not `v*` tags): tagging the same commit as main would run
+# this workflow twice with identical output.
+#
+# Path filter: rebuild Pages only when MkDocs inputs change. `workflow_dispatch`
+# still runs a full deploy without path checks (manual refresh).
 name: Deploy docs to GitHub Pages
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs-pages.yml"
   workflow_dispatch:
 
 permissions:

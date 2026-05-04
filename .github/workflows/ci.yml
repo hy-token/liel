@@ -2,7 +2,7 @@
 # on Linux, Windows, macOS.
 #
 # Docs are also deployed to GitHub Pages from the public repo only; see
-# `docs-pages.yml` (`hy-token/liel`, push to `main` or `v*` tags).
+# `docs-pages.yml` (`hy-token/liel`, `main` + docs-related paths only; see workflow).
 name: CI
 
 on:

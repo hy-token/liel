@@ -74,7 +74,7 @@ pip install -r requirements-dev.txt
 mkdocs serve
 ```
 
-Then open `http://127.0.0.1:8000/liel/` (MkDocs uses the same path prefix as the [GitHub Pages](https://hy-token.github.io/liel/) project site). On **`hy-token/liel`**, pushes to `main` and `v*` tags run **Deploy docs to GitHub Pages** and refresh the live site. You can still read Markdown under `docs/` on GitHub; `mkdocs build --strict` checks the built site locally.
+Then open `http://127.0.0.1:8000/liel/` (MkDocs uses the same path prefix as the [GitHub Pages](https://hy-token.github.io/liel/) project site). On **`hy-token/liel`**, pushes to **`main`** refresh the live site only when **`docs/**`, **`mkdocs.yml`**, or **`.github/workflows/docs-pages.yml`** change (path filter); use **Actions → Run workflow** for a manual full redeploy. Release tags do not trigger it. You can still read Markdown under `docs/` on GitHub; `mkdocs build --strict` checks the built site locally.
 
 ## Design Constraints
 

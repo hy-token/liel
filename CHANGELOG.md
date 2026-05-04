@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-05-05
+
+### Added
+
+- **Local coding-agent workflow** — [`docs/internal/process/local-agent-liel-workflow.ja.md`](docs/internal/process/local-agent-liel-workflow.ja.md) describes keeping [`codex-session-memory.liel`](codex-session-memory.liel) in the loop locally (Cursor rule template, MCP, importer). Template [`docs/internal/templates/cursor-rule-liel-memory.mdc`](docs/internal/templates/cursor-rule-liel-memory.mdc) and [`scripts/memory/copy_cursor_liel_rule.ps1`](scripts/memory/copy_cursor_liel_rule.ps1) / [`copy_cursor_liel_rule.sh`](scripts/memory/copy_cursor_liel_rule.sh) install `.cursor/rules/liel-memory.mdc` (gitignored).
+- **MkDocs theme override** — [`overrides/main.html`](overrides/main.html) injects **Google Search Console** `google-site-verification` meta on the docs homepage only; [`mkdocs.yml`](mkdocs.yml) sets `theme.custom_dir: overrides`.
+
+### Changed
+
+- **README badges** — [Release](https://shields.io/badges/git-hub-tag) badge uses **`github/v/tag`** (latest git tag) instead of **`github/v/release`**, with link to tags; [README.ja.md](README.ja.md) aligned. PyPI badge continues to reflect the published package version.
+- **Project memory importer** — [`scripts/memory/import_project_memory.py`](scripts/memory/import_project_memory.py) adds specification **`spec:docs:readme-and-pages-trust-signals`** and related decisions for README / Pages trust signals.
+- **Agent docs** — [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) require consulting **`codex-session-memory.liel`** first (MCP or `liel stats` / `liel export` fallback); internal [process index](docs/internal/process/index.ja.md) links the local workflow doc.
+
+### Versioning
+
+- **0.6.2** — Python package and Rust crate **`0.6.2`**.
+
+## [0.6.1] - 2026-05-05
+
+### Changed
+
+- **GitHub Pages** — `Deploy docs to GitHub Pages` runs on **`main` push only** (not `v*` tags), and only when **`docs/**`**, **`mkdocs.yml`**, or **`.github/workflows/docs-pages.yml`** change; **`workflow_dispatch`** still redeploys without path filters. Avoids duplicate deploys and unnecessary runs on code-only commits.
+- **Maintainer docs** — [Release procedure](docs/internal/process/release-procedure.ja.md) notes **`github-pages` environment** rules (e.g. deploy from **`main`**, not a tag ref, when branch/tag policies block tag deploys).
+
+### Versioning
+
+- **0.6.1** — Python package and Rust crate **`0.6.1`**.
+
 ## [0.6.0] - 2026-05-05
 
 ### Added
@@ -860,6 +888,8 @@ First public Beta PyPI release.
 [0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9
 [0.2.10]: https://github.com/hy-token/liel/releases/tag/v0.2.10
 [0.4.0]: https://github.com/hy-token/liel/releases/tag/v0.4.0
+[0.6.1]: https://github.com/hy-token/liel/releases/tag/v0.6.1
+[0.6.2]: https://github.com/hy-token/liel/releases/tag/v0.6.2
 [0.6.0]: https://github.com/hy-token/liel/releases/tag/v0.6.0
 [0.5.2]: https://github.com/hy-token/liel/releases/tag/v0.5.2
 [0.5.1]: https://github.com/hy-token/liel/releases/tag/v0.5.1

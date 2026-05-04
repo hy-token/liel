@@ -3,12 +3,14 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/hy-token/liel/blob/main/LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/hy-token/liel/ci.yml?label=CI)](https://github.com/hy-token/liel/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/liel)](https://pypi.org/project/liel/)
-[![Docs](https://img.shields.io/badge/docs-mkdocs-blue)](docs/index.md)
-[![Release](https://img.shields.io/github/v/release/hy-token/liel)](https://github.com/hy-token/liel/releases)
+[![Docs](https://img.shields.io/badge/docs-site-blue)](https://hy-token.github.io/liel/)
+[![Release](https://img.shields.io/github/v/tag/hy-token/liel?label=release)](https://github.com/hy-token/liel/tags)
 
 ## Git-compatible memory for AI agents.
 
 One local file you can merge, diff, trace, and inspect.
+
+**Docs:** [https://hy-token.github.io/liel/](https://hy-token.github.io/liel/)
 
 ![Parallel merge preview: two agent memories merged with `liel merge --dry-run`](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/parallel-merge.wsl.gif)
 
