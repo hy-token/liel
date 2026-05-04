@@ -1,14 +1,16 @@
 # MkDocs — https://www.mkdocs.org/
 # Theme — https://squidfunk.github.io/mkdocs-material/
 #
-# This config drives a LOCAL preview only. We do not deploy to GitHub Pages
-# anymore (see CONTRIBUTING.md). The same file is synced into the public
-# repo (hy-token/liel), where only the English Markdown files exist.
+# Synced into the public repo (`hy-token/liel`). `mkdocs serve` / `mkdocs build`
+# are used locally; the public repo also runs **Deploy docs to GitHub Pages**
+# (see `.github/workflows/docs-pages.yml` and CONTRIBUTING.md).
 
 site_name: liel documentation
 site_description: Single-file graph memory for local AI
 site_author: hy-token
-site_url: https://github.com/hy-token/liel
+# GitHub Pages project site for repo `liel` (must match Settings -> Pages).
+# `mkdocs serve` uses the same path prefix locally: http://127.0.0.1:8000/liel/
+site_url: https://hy-token.github.io/liel/
 
 repo_name: hy-token/liel
 repo_url: https://github.com/hy-token/liel
@@ -94,6 +96,7 @@ nav:
       - Quickstart: guide/quickstart.md
       - Command line: guide/cli.md
       - CI / GitHub Actions: guide/ci.md
+      - Sample viewer (read-only): guide/sample-viewer.md
       - APIs and integrations:
           - Overview: guide/connectors/index.md
           - Python: guide/connectors/python.md

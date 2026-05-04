@@ -1,9 +1,8 @@
 # Continuous integration: Rust fmt/clippy + tests, and Python (maturin + pytest)
 # on Linux, Windows, macOS.
 #
-# Note: There is no GitHub Pages deployment workflow — the public docs site is
-# not hosted (GitHub Free cannot restrict Pages access). MkDocs is kept for
-# local preview only (`mkdocs serve` / `mkdocs build --strict`).
+# Docs are also deployed to GitHub Pages from the public repo only; see
+# `docs-pages.yml` (`hy-token/liel`, push to `main` or `v*` tags).
 name: CI
 
 on:

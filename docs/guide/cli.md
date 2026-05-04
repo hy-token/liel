@@ -67,6 +67,16 @@ then dry-run merge). Example merge command:
 liel merge target/demo-memory/agent-a.liel target/demo-memory/agent-b.liel --dry-run --identity-rules target/demo-memory/identity-rules.json --edge-strategy idempotent
 ```
 
+## Sample viewer (read-only)
+
+For a quick JSON-first viewer trial, use
+[`docs/guide/sample-viewer`](sample-viewer.md). It reads:
+
+- `liel export` (required)
+
+The sample uses embedded JS libraries for rendering and keeps the contract
+boundary at documented JSON inputs.
+
 ## Help
 
 ```bash

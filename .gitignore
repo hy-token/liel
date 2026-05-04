@@ -48,6 +48,9 @@ Thumbs.db
 # MkDocs
 /site/
 
+# VHS: optional local capture (often empty or machine-specific); GIF is the shipped asset
+/assets/demo/parallel-merge.windows-powershell.ascii
+
 # Local Codex verification outputs
 /codex-*/
 /.codex-*/

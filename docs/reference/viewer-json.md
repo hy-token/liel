@@ -49,6 +49,74 @@ Reasonable first steps:
    stable JSON only; editing and hosted multi-tenant dashboards remain out of
    scope for the core project until explicitly designed.
 
+## Phase 4 E4 minimum profile (careful rollout)
+
+To keep E4 low-risk, build the viewer in gated steps and freeze contracts first.
+Implementation may use embedded JS visualization libraries; the contract
+boundary stays JSON-only.
+
+### Gate A — Contract freeze
+
+The first viewer release may read only these documented JSON surfaces:
+
+- `liel stats --format json` (overview cards and label counts)
+- `liel export` (node/edge table and detail panes)
+- `liel trace` output via MCP/CLI JSON (path preview entry points)
+
+Do not add browser-side binary parsing of `.liel` as a shortcut.
+
+### Gate B — Minimal read-only UI
+
+A "minimum done" viewer should provide:
+
+- file summary (counts, labels, format/version hints),
+- node/edge list with basic filters,
+- drill-down panel for one node/edge,
+- optional trace jump (from selected IDs).
+
+Library policy for E4:
+
+- Allowed: embed external JS libraries for table/search/filter and graph rendering.
+- Required: keep a thin adapter layer that maps contract JSON to library inputs.
+- Not allowed: coupling viewer behavior to `.liel` binary internals or undocumented JSON fields.
+
+### Gate C — Reproducibility and docs
+
+Validate against fixed `examples/demo_memory` data and keep docs/README links to
+the viewer entry point in sync with this page.
+
+**Repro steps (Gate C baseline):**
+
+```bash
+python examples/demo_memory/make_demo_files.py --force
+liel export target/demo-memory/base.liel -o target/demo-memory/base.export.json
+```
+
+Open `docs/guide/sample-viewer/app/index.html`, then load
+`target/demo-memory/base.export.json`.
+
+**Gate C acceptance checklist:**
+
+- [ ] Viewer opens with bundled trace scenario sample by default.
+- [ ] Loading the exported JSON updates summary, node table, edge table, and graph.
+- [ ] `docs/guide/cli.md` links to `docs/guide/sample-viewer.md`.
+- [ ] This contract page links to the same sample viewer README.
+
+### Gate D — Operations checklist
+
+When changing viewer behavior, run this lightweight checklist:
+
+- [ ] **Contract drift check**: if CLI/MCP JSON fields changed, update
+  `cli-json-inventory` / `json-surfaces` and this page together.
+- [ ] **Adapter boundary check**: keep mapping logic in the viewer adapter layer;
+  do not parse `.liel` bytes or rely on undocumented fields.
+- [ ] **Sample smoke check**: open `docs/guide/sample-viewer/app/index.html`,
+  load `target/demo-memory/base.export.json`, confirm summary/tables/graph update.
+- [ ] **Docs link check**: keep links aligned across
+  `docs/guide/cli.md`, this page, and `docs/guide/sample-viewer.md`.
+- [ ] **Scale guard check**: preserve node/edge render caps or equivalent guardrails
+  so large exports do not freeze the sample UI.
+
 Lineage-heavy views (decisions, provenance, impact paths) compose from the same
 exports plus conventions in [Recommended labels](../conventions/recommended-labels.md)
 and [Provenance](../conventions/provenance.md).
@@ -57,3 +125,5 @@ and [Provenance](../conventions/provenance.md).
 
 - [Capability matrix](capability-matrix.md) — stakeholder map including MCP and CLI
 - [Machine-readable surfaces index](json-surfaces.md) — links to all contract pages
+- [Sample viewer implementation](../guide/sample-viewer.md) — quick local
+  read-only reference UI based on the same JSON contracts

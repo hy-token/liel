@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-05
+
+### Added
+
+- **MkDocs sample viewer** — Read-only reference UI under `docs/guide/sample-viewer/` (`app/` static assets) for `liel export` JSON; MkDocs nav entry and links from the [CLI guide](docs/guide/cli.md) and [Viewer JSON contract](docs/reference/viewer-json.md).
+- **GitHub Pages** — Workflow **Deploy docs to GitHub Pages** (`.github/workflows/docs-pages.yml`) builds with MkDocs and publishes on push to `main` or `v*` on **`hy-token/liel`** only (enable **Settings → Pages → GitHub Actions** once).
+
+### Changed
+
+- **MkDocs `site_url`** — Set to `https://hy-token.github.io/liel/` for canonical URLs and GitHub Pages; `mkdocs serve` previews under `http://127.0.0.1:8000/liel/` (same path prefix as production). Avoid using `https://github.com/owner/repo` as `site_url` (MkDocs would offset under `/owner/repo/`).
+
+### Chore
+
+- **Git ignore** — `assets/demo/parallel-merge.windows-powershell.ascii` (optional VHS transcript; GIF remains the shipped demo asset).
+
+### Versioning
+
+- **0.6.0** — Python package and Rust crate **`0.6.0`**.
+
 ## [0.5.2] - 2026-05-05
 
 ### Fixed
@@ -841,6 +860,7 @@ First public Beta PyPI release.
 [0.2.9]: https://github.com/hy-token/liel/releases/tag/v0.2.9
 [0.2.10]: https://github.com/hy-token/liel/releases/tag/v0.2.10
 [0.4.0]: https://github.com/hy-token/liel/releases/tag/v0.4.0
+[0.6.0]: https://github.com/hy-token/liel/releases/tag/v0.6.0
 [0.5.2]: https://github.com/hy-token/liel/releases/tag/v0.5.2
 [0.5.1]: https://github.com/hy-token/liel/releases/tag/v0.5.1
 [0.5.0]: https://github.com/hy-token/liel/releases/tag/v0.5.0

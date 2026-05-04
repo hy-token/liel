@@ -74,7 +74,7 @@ pip install -r requirements-dev.txt
 mkdocs serve
 ```
 
-Then open `http://127.0.0.1:8000`. The docs site is **not auto-deployed to GitHub Pages** at the moment (GitHub Free cannot restrict Pages access). Read the docs as Markdown directly under `docs/`, or build locally with `mkdocs build --strict`.
+Then open `http://127.0.0.1:8000/liel/` (MkDocs uses the same path prefix as the [GitHub Pages](https://hy-token.github.io/liel/) project site). On **`hy-token/liel`**, pushes to `main` and `v*` tags run **Deploy docs to GitHub Pages** and refresh the live site. You can still read Markdown under `docs/` on GitHub; `mkdocs build --strict` checks the built site locally.
 
 ## Design Constraints
 

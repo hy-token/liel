@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>liel sample viewer (read-only)</title>
+    <link
+      href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/vis-network@9.1.9/styles/vis-network.min.css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <h1>liel sample viewer</h1>
+        <p class="subtle">
+          Read-only sample UI. Input is documented JSON only (`stats` / `export`
+          / `trace`).
+        </p>
+      </header>
+
+      <section class="panel">
+        <h2>1) Load JSON inputs</h2>
+        <p class="subtle">
+          Required: <code>export</code> only.
+        </p>
+        <div class="loader-grid">
+          <label>
+            <span>Export JSON (`liel export -o ...`)</span>
+            <input id="exportFile" type="file" accept=".json,application/json" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="resetToSample" type="button">Reset to bundled sample</button>
+        </div>
+        <p id="status" class="status">No files loaded yet.</p>
+      </section>
+
+      <section class="panel">
+        <h2>2) Overview</h2>
+        <div id="summaryCards" class="cards"></div>
+      </section>
+
+      <section class="panel">
+        <h2>3) Graph (sample rendering)</h2>
+        <p class="subtle">
+          Renders up to 300 nodes / 600 edges to keep the sample responsive.
+        </p>
+        <div id="graphCanvas" class="graph"></div>
+      </section>
+
+      <section class="panel">
+        <h2>4) Nodes</h2>
+        <div id="nodeTable"></div>
+      </section>
+
+      <section class="panel">
+        <h2>5) Edges</h2>
+        <div id="edgeTable"></div>
+      </section>
+
+      <section class="panel">
+        <h2>6) Path helper (from loaded export)</h2>
+        <pre id="tracePreview" class="trace">
+Select two node IDs in your workflow and use `liel trace` for a detailed path narrative.
+This sample viewer intentionally remains export-only for input simplicity.
+        </pre>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
+    <script src="https://unpkg.com/vis-data@7.1.6/peer/umd/vis-data.min.js"></script>
+    <script src="https://unpkg.com/vis-network@9.1.9/peer/umd/vis-network.min.js"></script>
+    <script src="./viewer.js"></script>
+  </body>
+</html>

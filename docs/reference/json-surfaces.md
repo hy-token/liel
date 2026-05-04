@@ -14,3 +14,14 @@ or integration surface. Do not duplicate JSON field lists in secondary docs.
 
 Contributors: full ownership rules live in the source repository under
 `docs/internal/process/documentation-taxonomy.ja.md` (maintainers).
+
+## E7 operating rule (post-Phase 4)
+
+When changing machine-readable CLI/MCP contracts (JSON fields or exit codes),
+update the relevant contract docs in the same change set:
+
+- [CLI JSON inventory](cli-json-inventory.md)
+- [CLI merge report](cli-merge-report.md) (if merge preview shape changes)
+- [MCP tools reference](../guide/mcp/tools.md) (if MCP payloads change)
+- [Viewer JSON contract](viewer-json.md) (if viewer inputs change)
+- this page (if authoritative ownership mapping changes)

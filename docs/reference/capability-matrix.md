@@ -63,6 +63,7 @@ For API-level detail (methods, limits, non-goals), see the [feature list](featur
 | Docs | Format spec | Maintainers; tool builders | On-disk constraints for `.liel`. |
 | Docs | Machine-readable surfaces index | CI authors; MCP integrators; tool builders | Single map from automation concern to authoritative JSON docs ([json-surfaces](json-surfaces.md)). |
 | Docs | Viewer JSON contract | Tool builders | Stable viewer/dashboard inputs derived from CLI outputs; **do not** parse raw `.liel` bytes in the browser as the primary path ([viewer-json](viewer-json.md)). |
+| Docs | README trust/status badges | First-time users | Package / CI / docs / release signals are visible at a glance. |
 | Docs | Vector hybrid conventions | Teams; integrators | Optional properties when pairing `liel` with external embeddings ([vector-conventions](vector-conventions.md)). |
 | Docs | Schema profiles (optional) | Teams; validators | Optional per-label expectations outside core enforcement ([schema-profiles](schema-profiles.md)). |
 
@@ -76,9 +77,7 @@ Items below are **not a committed roadmap**; they capture typical **Phase 4+** p
 
 | Area | Feature / tool | Audience | Value |
 |------|----------------|----------|--------|
-| README | License / PyPI / Python / CI / Docs / Release badges | First-time visitors | Trust signals at a glance. |
-| Docs | GitHub Pages (or similar) | Users; teams | Public URL for docs. |
-| Viewer | Read-only graph viewer (product/UI) | Reviewers; teams | Browser-friendly “what do we remember?” — **contract docs exist** ([viewer-json](viewer-json.md)); a turnkey viewer app remains optional. |
+| Viewer | Read-only sample viewer | Reviewers; teams | Browser-friendly “what do we remember?” — **contract docs exist** ([viewer-json](viewer-json.md)); this is a sample/reference viewer, not a full product UI. |
 | API | Higher-level “memory” API | App developers | Graph-free ergonomics beyond `coding_memory` (broader than today’s experimental helper). |
 | API | Turnkey IDE / agent preset **package** | Coding-agent users | Pre-built app packaging on top of `liel` (not shipped in core). |
 
