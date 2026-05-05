@@ -12,9 +12,6 @@ or integration surface. Do not duplicate JSON field lists in secondary docs.
 | External vector store hybrid | Embeddings live outside `liel` | [Vector hybrid conventions](vector-conventions.md) |
 | Optional per-label validation | Team validators, not core enforcement | [Schema profiles (optional)](schema-profiles.md) |
 
-Contributors: full ownership rules live in the source repository under
-`docs/internal/process/documentation-taxonomy.ja.md` (maintainers).
-
 ## E7 operating rule (post-Phase 4)
 
 When changing machine-readable CLI/MCP contracts (JSON fields or exit codes),

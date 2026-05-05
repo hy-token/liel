@@ -28,7 +28,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install liel
-        run: pip install "liel>=0.6.3,<1"
+        run: pip install "liel>=0.6,<1"
 
       - name: Run liel manifest on tracked .liel files
         shell: bash

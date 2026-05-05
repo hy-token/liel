@@ -39,7 +39,6 @@ format or the Rust API.
 
 - **Source:** [`python/liel/coding_memory.py`](https://github.com/hy-token/liel/blob/main/python/liel/coding_memory.py)
 - **Runnable demo:** [`examples/coding_memory/run_demo.py`](https://github.com/hy-token/liel/blob/main/examples/coding_memory/run_demo.py)
-- **Maintainer design (Japanese):** [`docs/internal/design/coding-memory.ja.md`](https://github.com/hy-token/liel/blob/main/docs/internal/design/coding-memory.ja.md) and [`memory-api.ja.md`](https://github.com/hy-token/liel/blob/main/docs/internal/design/memory-api.ja.md)
 
 ```python
 import liel

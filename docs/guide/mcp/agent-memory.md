@@ -39,13 +39,16 @@ Useful starter labels:
 
 ## Official MCP surface
 
-The official tool surface is fixed to these seven tools:
+The official tool surface is fixed to these ten tools:
 
 - `liel_overview`
 - `liel_find`
 - `liel_explore`
 - `liel_trace`
 - `liel_map`
+- `liel_diff`
+- `liel_merge_preview`
+- `liel_manifest`
 - `liel_append`
 - `liel_merge`
 

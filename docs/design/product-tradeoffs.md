@@ -10,7 +10,7 @@ This page is the canonical record of liel's **deliberate non-goals**, written in
 - **Why chosen** — why the current shape is the one we ship.
 - **Trade-off** — what we give up by making this choice.
 
-**Document role:** Canonical **product design** decisions (non-goals and rationale). **Folder layout** and the **document-role index** (section 7) live under **[docs/internal/process/](https://github.com/hy-token/liel/tree/main/docs/internal/process)** (maintainer-only). On-disk contract: [format spec](../reference/format-spec.md). Maintainer roadmap and process entry points live in the same directory on GitHub.
+**Document role:** Canonical **product design** decisions (non-goals and rationale). On-disk contract: [format spec](../reference/format-spec.md).
 
 The decisions below — especially everything in §6 — are **frozen**. Anything in §6 affects file-format compatibility and will not change for any reason short of a major version bump with a migration path.
 
@@ -446,4 +446,4 @@ The Phase 2 / 3 lists in the maintainer-facing implementation plan are a **backl
 
 We do not aim to "do all of Phase 2". Where it survives, it should be redefined into sub-milestones that do not break **single file, minimal dependencies** (e.g. read-only WASM only, property index only, JSON helper at the Python layer only).
 
-Per-item status and the reinterpretation table live in the maintainer [future roadmap](https://github.com/hy-token/liel/tree/main/docs/internal/process) (single source; not duplicated here—open that folder on GitHub and use the roadmap filenames there). The **local sharing** workstream (e.g. `liel diff` / `merge` conventions) is tracked in the Phase 2 roadmap in the same directory.
+Per-item roadmap status is intentionally not duplicated here. This page focuses on the durable product boundaries and design rationale.

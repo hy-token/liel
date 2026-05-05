@@ -124,7 +124,7 @@ unaffected.
 
 ## Tools at a glance
 
-The official MCP surface is fixed to these seven tools. New docs, prompts, and
+The official MCP surface is fixed to these ten tools. New docs, prompts, and
 examples should use these names only.
 
 | Tool | Purpose | R/W |
@@ -134,6 +134,9 @@ examples should use these names only.
 | [`liel_explore`](tools.md#liel_explore) | Explore a neighbourhood with BFS and Mermaid output | Read |
 | [`liel_trace`](tools.md#liel_trace) | Trace the shortest path between two nodes | Read |
 | [`liel_map`](tools.md#liel_map) | Render a chosen subgraph as Mermaid | Read |
+| [`liel_diff`](tools.md#liel_diff) | Compare two `.liel` files with CLI-compatible JSON | Read |
+| [`liel_merge_preview`](tools.md#liel_merge_preview) | Preview a two-file merge without writing output | Read |
+| [`liel_manifest`](tools.md#liel_manifest) | Emit deterministic manifest JSON for a `.liel` file | Read |
 | [`liel_append`](tools.md#liel_append) | Append new nodes and edges in one commit | **Write** |
 | [`liel_merge`](tools.md#liel_merge) | Reuse or update existing nodes and add idempotent edges in one commit | **Write** |
 

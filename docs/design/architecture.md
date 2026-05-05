@@ -1,6 +1,6 @@
 # Architecture overview
 
-**Document role:** High-level **system architecture** narrative. Folder layout and which file is authoritative for which topic are recorded under **[docs/internal/process/](https://github.com/hy-token/liel/tree/main/docs/internal/process)** (maintainer notes in the repository; excluded from this site build). Scope and explicit non-goals: **[product trade-offs](product-tradeoffs.md)**.
+**Document role:** High-level **system architecture** narrative. Scope and explicit non-goals: **[product trade-offs](product-tradeoffs.md)**.
 
 `liel` is a **portable external brain** for LLMs and local AI tools. Internally, that memory is persisted as a **property graph** inside a **single file** (`.liel`). There is no server process; you carry the library and the `.liel` file with the workflow that needs the memory.
 

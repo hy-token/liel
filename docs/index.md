@@ -40,9 +40,10 @@ It covers the API rooted at `liel.open()`, exceptions, transactions, the QueryBu
 
 Use the **[MCP server](guide/mcp/index.md)**.
 Enable it with `pip install "liel[mcp]"` and start it with `liel-mcp --path my.liel`.
-The official MCP surface is fixed to seven tools:
+The official MCP surface is fixed to ten tools:
 `liel_overview`, `liel_find`, `liel_explore`, `liel_trace`, `liel_map`,
-`liel_append`, and `liel_merge`.
+`liel_diff`, `liel_merge_preview`, `liel_manifest`, `liel_append`, and
+`liel_merge`.
 The exposed tools are documented in the **[Tools reference](guide/mcp/tools.md)**, and practical agent behavior lives in the **[AI memory playbook](guide/mcp/agent-memory.md)**.
 
 ### Contributing code
@@ -81,8 +82,6 @@ Start with **[format spec](reference/format-spec.md)** for byte layout, **[Pytho
 | **[Conventions](conventions/index.md)** | Teams and tools sharing `.liel` files |
 | **[Reference](reference/index.md)** | Users and connector authors checking behavior and file compatibility |
 | **[Design](design/index.md)** | Anyone reviewing architecture, scope, and trade-offs |
-| **[`docs/internal/`](https://github.com/hy-token/liel/tree/main/docs/internal)** | Maintainers working on implementation, release flow, and internal documentation policy |
-
 Primary sources of truth:
 
 - The byte layout lives in **[format spec](reference/format-spec.md)**.
@@ -90,7 +89,6 @@ Primary sources of truth:
 - The commit/fsync/recovery contract lives in **[reliability](reference/reliability.md)**.
 - AI tool operating rules live in **[AI memory playbook](guide/mcp/agent-memory.md)**.
 - Product decisions and explicit non-goals live in **[product trade-offs](design/product-tradeoffs.md)**.
-- Folder layout and the **document-role SSOT index** (section 7) are described alongside other maintainer process docs in **[docs/internal/process/](https://github.com/hy-token/liel/tree/main/docs/internal/process)** on GitHub (not part of this site build).
 
 ---
 

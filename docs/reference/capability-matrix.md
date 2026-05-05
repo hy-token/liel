@@ -73,7 +73,7 @@ For API-level detail (methods, limits, non-goals), see the [feature list](featur
 
 ## Planned / open gaps (examples)
 
-Items below are **not a committed roadmap**; they capture typical **Phase 4+** product and distribution gaps called out in internal playbooks. Priorities change with feedback.
+Items below are **not a committed roadmap**; they capture typical **Phase 4+** product and distribution gaps. Priorities change with feedback.
 
 | Area | Feature / tool | Audience | Value |
 |------|----------------|----------|--------|
@@ -92,4 +92,3 @@ Items below are **not a committed roadmap**; they capture typical **Phase 4+** p
 | [Viewer JSON contract](viewer-json.md) | Approved inputs for visualization tools |
 | [Command line](../guide/cli.md) | CLI usage |
 | [MCP tools](../guide/mcp/tools.md) | MCP parameters and examples |
-| Phase 4 marketing playbook | Distribution and messaging strategy (maintainer docs under `docs/internal/process/` in the repository; not shipped on this site) |

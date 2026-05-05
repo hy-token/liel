@@ -14,8 +14,6 @@ One local file you can merge, diff, trace, and inspect.
 
 ![Parallel merge preview: two agent memories merged with `liel merge --dry-run`](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/parallel-merge.wsl.gif)
 
-![Identity-aware memory diff: review drift without ID noise](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/diff-key-aware.wsl.gif)
-
 ```bash
 pip install liel
 liel-demo
@@ -66,11 +64,11 @@ Default output: `target/demo-memory/` (`base.liel`, `agent-a.liel`, `agent-b.lie
    liel stats target/demo-memory/base.liel --format json
    ```
 
-For **VHS tapes and GIF outputs**, see [`demos/README.md`](demos/README.md) (English) or [`demos/README.ja.md`](demos/README.ja.md) (Japanese catalog). KPI and posting cadence for these stories live in the maintainer [Phase 4 Marketing Playbook](docs/internal/process/roadmap-phase4-marketing-playbook.ja.md) (Japanese; clone the repo to read it).
+For more command-line examples, see the [command-line guide](docs/guide/cli.md).
 
 ## Coding memory helpers (experimental)
 
-Optional thin wrappers in [`python/liel/coding_memory.py`](python/liel/coding_memory.py) for `File` / `Decision` / bug-shaped `Task` nodes — see [`examples/coding_memory/README.md`](examples/coding_memory/README.md) and the [Python guide § Coding memory helpers](docs/guide/connectors/python.md#coding-memory-helpers). Maintainer design (Japanese): [`docs/internal/design/coding-memory.ja.md`](docs/internal/design/coding-memory.ja.md).
+Optional thin wrappers in [`python/liel/coding_memory.py`](python/liel/coding_memory.py) for `File` / `Decision` / bug-shaped `Task` nodes — see [`examples/coding_memory/README.md`](examples/coding_memory/README.md) and the [Python guide § Coding memory helpers](docs/guide/connectors/python.md#coding-memory-helpers).
 
 ## Why Local-First
 

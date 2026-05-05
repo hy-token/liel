@@ -16,8 +16,6 @@ Use **one** authoritative page per concern; do not duplicate JSON field lists ac
 | External vector stores alongside `liel` | [Vector hybrid conventions](vector-conventions.md) |
 | Optional per-label validation outside the core | [Schema profiles (optional)](schema-profiles.md) |
 
-Contributors: the source repository under `docs/internal/process/` holds the full document-ownership index (including Phase 4 and CLI roles).
-
 ## Document scope
 
 | Document | Concern | Read when you need to |

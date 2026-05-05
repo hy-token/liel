@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-05-05
+
+### Changed
+
+- **Launch docs** — README hero media now ships only the merge and trace GIFs that are included in the public release sync.
+- **Public documentation** — Remove public links to maintainer-only `docs/internal` pages and align the MCP overview/playbook with the current 10-tool surface.
+- **Viewer JSON contract** — Mark the Phase 4 E4 sample/reference viewer as complete and replace the rollout checklist with maintenance guidance.
+- **Release versioning** — `Cargo.toml` is now the package-version source of truth; `pyproject.toml` uses dynamic version metadata, release tooling reads Cargo metadata, and CI examples use a minor-version lower bound.
+- **Launch prep docs (internal)** — Add and refine community-posting drafts for Hacker News, Hashnode, and Reddit to support the public launch workflow.
+
+### Versioning
+
+- **0.6.4** — Python package and Rust crate **`0.6.4`**.
+
 ## [0.6.3] - 2026-05-05
 
 ### Fixed
@@ -905,6 +919,7 @@ First public Beta PyPI release.
 [0.6.1]: https://github.com/hy-token/liel/releases/tag/v0.6.1
 [0.6.2]: https://github.com/hy-token/liel/releases/tag/v0.6.2
 [0.6.3]: https://github.com/hy-token/liel/releases/tag/v0.6.3
+[0.6.4]: https://github.com/hy-token/liel/releases/tag/v0.6.4
 [0.6.0]: https://github.com/hy-token/liel/releases/tag/v0.6.0
 [0.5.2]: https://github.com/hy-token/liel/releases/tag/v0.5.2
 [0.5.1]: https://github.com/hy-token/liel/releases/tag/v0.5.1

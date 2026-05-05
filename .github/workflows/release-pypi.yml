@@ -1,7 +1,7 @@
 # Build wheels (3 OS) + sdist and publish to TestPyPI / PyPI.
 #
 # Releases are manual on purpose. Run this workflow from a v* release tag whose
-# name matches pyproject.toml (for example v0.2.0).
+# name matches Cargo.toml package.version (for example v0.6.4).
 # A tag push alone never uploads to PyPI.
 #
 # Production publishing is allowed only from hy-token/liel. This workflow is
@@ -12,9 +12,8 @@
 #     project: liel, owner: hy-token, repo: liel,
 #     workflow: release-pypi.yml, environment: testpypi or pypi
 #
-# Version is read from pyproject.toml. For stable releases Cargo.toml must
-# match it; for pre-releases pyproject.toml may add a PEP 440 suffix
-# (for example 0.3.0a1) while Cargo.toml stays at the base version (0.3.0).
+# Version is read from Cargo.toml. pyproject.toml must use dynamic version
+# metadata so maturin derives the Python package version from Cargo metadata.
 
 name: Build and publish Python package
 
@@ -57,15 +56,13 @@ jobs:
           from pathlib import Path
           import tomllib
 
-          pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
           cargo = tomllib.loads(Path("Cargo.toml").read_text(encoding="utf-8"))
-          version = pyproject["project"]["version"]
-          cargo_version = cargo["package"]["version"]
-          if version != cargo_version and not version.startswith(cargo_version):
-              raise SystemExit(
-                  "pyproject.toml version must match Cargo.toml, or use Cargo.toml "
-                  "as the base for a PEP 440 pre-release suffix"
-              )
+          pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          version = cargo["package"]["version"]
+          cargo_version = version
+          project = pyproject["project"]
+          if "version" in project or "version" not in project.get("dynamic", []):
+              raise SystemExit("pyproject.toml must use project.dynamic = ['version']")
           print(f"version={version}")
           print(f"cargo_version={cargo_version}")
           PY
