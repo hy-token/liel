@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **1.0.0** — Complete multi-OS release evidence, tag `v1.0.0`, switch PyPI `Development Status` to **Production/Stable**, and publish after maintainer sign-off.
 
+## [0.7.1] - 2026-05-14
+
+### Fixed
+
+- **Docs strict build** — Removed public `1.0 readiness` links to maintainer-only `docs/internal/**` pages so `mkdocs build --strict` no longer fails when internal docs are excluded from the published site.
+- **Windows Git Bash local CI** — `scripts/release/local_ci_windows_git_bash.sh` now runs `python -m mkdocs build --strict` early, making docs link regressions fail before slower release checks.
+
+### Versioning
+
+- **0.7.1** — Python package and Rust crate **`0.7.1`**. Patch release for documentation-release gating; **`Development Status` remains `4 - Beta`** until the separate **1.0.0** publish.
+
 ## [0.7.0] - 2026-05-14
 
 ### Added
@@ -953,6 +964,7 @@ First public Beta PyPI release.
 [0.6.1]: https://github.com/hy-token/liel/releases/tag/v0.6.1
 [0.6.2]: https://github.com/hy-token/liel/releases/tag/v0.6.2
 [0.6.3]: https://github.com/hy-token/liel/releases/tag/v0.6.3
+[0.7.1]: https://github.com/hy-token/liel/releases/tag/v0.7.1
 [0.7.0]: https://github.com/hy-token/liel/releases/tag/v0.7.0
 [0.6.4]: https://github.com/hy-token/liel/releases/tag/v0.6.4
 [0.6.0]: https://github.com/hy-token/liel/releases/tag/v0.6.0
