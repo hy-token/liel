@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+- **1.0.0** — Complete multi-OS release evidence, tag `v1.0.0`, switch PyPI `Development Status` to **Production/Stable**, and publish after maintainer sign-off.
+
+## [0.7.0] - 2026-05-14
+
+### Added
+
+- **Release evidence** — Maintainer log for the `v0.7.0` tag is tracked at `docs/internal/process/release-evidence/2026-05-14-v0.7.0.md`, with closeout checks from 2026-05-14 appended.
+- **Scale baseline note** — `docs/internal/process/scale-baseline-v0.7.0.ja.md` ties representative workloads to `scripts/bench/bench_python_api.py`, records the current “measure before format/index work” decision, and includes export/import, diff, merge preview, and trace timing.
+- **MCP write policy** — Copyable project write policy template in [AI memory playbook](docs/guide/mcp/agent-memory.md#project-write-policy-template-copy-and-edit) (Japanese mirror in `docs/guide/mcp/agent-memory.ja.md`).
+- **Release procedure** — On-disk file format breaking-change checklist in `docs/internal/process/release-procedure.ja.md` (section 2.11).
+- **1.0 contract tests** — `tests/python/test_manifest_signing_contracts.py` guards manifest/sign `MANIFEST_VERSION` alignment and fail-closed manifest builds when stored floats are not finite JSON (`NaN` / `inf`).
+- **Python stable surface** — `test_public_api_surface.py` now covers `GraphDB.repair_adjacency()` and protects the documented repair summary counters.
+- **Viewer fixture contract tests** — `test_viewer_fixture_contract.py` keeps the docs/example fixtures and embedded fallback sample aligned.
+
+### Changed
+
+- **Docs** — [Python connector](docs/guide/connectors/python.md) documents the narrow `1.0` Python stable surface; [CLI JSON inventory](docs/reference/cli-json-inventory.md) and [MCP tools](docs/guide/mcp/tools.md) clarify manifest/sign versioning risks and MCP→CLI backing contracts.
+- **1.0 readiness** — [1.0 readiness](docs/reference/1-0-readiness.md) now marks the locally closable API, CLI JSON, MCP, CodingMemory, format compatibility, and benchmark work as ready for the final release-evidence pass.
+- **CLI JSON contract tests** — Integration tests assert documented top-level fields for `stats` / `trace` / `diff` / `merge` JSON output align with [CLI JSON inventory](docs/reference/cli-json-inventory.md) and [CLI merge report](docs/reference/cli-merge-report.md).
+- **Benchmark script** — `scripts/bench/bench_python_api.py` now measures public automation paths (`export`, `import`, `diff`, merge preview, and trace payload generation) in addition to Python API insert/traversal rows.
+- **CodingMemory example** — `examples/coding_memory/README.md` now describes the helper as an experimental convention layer rather than a frozen `1.0` contract.
+
+### Fixed
+
+- **MkDocs config** — `mkdocs.yml` nav label for operations mixed multiple `:` tokens in a single YAML scalar; renamed the nav title so `mkdocs build --strict` parses again.
+- **pytest** — `pythonpath = ["."]` in `pyproject.toml` so `tests/python/test_bench_python_api.py` can import `scripts.bench` when the repo root is not already on `sys.path` (observed on Windows).
+- **Sample viewer fallback** — The read-only viewer preserves the embedded fallback status when browser `file://` fetch restrictions block the checked-in fixture.
+
+### Versioning
+
+- **0.7.0** — Python package and Rust crate **`0.7.0`**. Pre-1.0 release focused on **stability-risk mitigation** (manifest/sign contracts, merge JSON shape, documented Python core + `repair_adjacency`, viewer fixture contract, benchmark baseline, operations/release process docs). **`Development Status` remains `4 - Beta`** until the separate **1.0.0** publish.
+
 ## [0.6.4] - 2026-05-05
 
 ### Changed
@@ -919,6 +953,7 @@ First public Beta PyPI release.
 [0.6.1]: https://github.com/hy-token/liel/releases/tag/v0.6.1
 [0.6.2]: https://github.com/hy-token/liel/releases/tag/v0.6.2
 [0.6.3]: https://github.com/hy-token/liel/releases/tag/v0.6.3
+[0.7.0]: https://github.com/hy-token/liel/releases/tag/v0.7.0
 [0.6.4]: https://github.com/hy-token/liel/releases/tag/v0.6.4
 [0.6.0]: https://github.com/hy-token/liel/releases/tag/v0.6.0
 [0.5.2]: https://github.com/hy-token/liel/releases/tag/v0.5.2

@@ -2,11 +2,39 @@
 
 Parameter specs and usage examples for every tool the `liel` MCP server exposes.
 
+Stability labels for the accepted `1.0` direction:
+
+- Read / inspection tools (`liel_overview`, `liel_find`, `liel_explore`,
+  `liel_trace`, `liel_map`, `liel_diff`, `liel_merge_preview`, `liel_manifest`)
+  are stable candidates when their arguments map directly to the stable CLI or
+  Python surfaces.
+- Write tools (`liel_append`, `liel_merge`) remain experimental for `1.0` until
+  project write policy, stable-key guidance, and dedupe rules are stronger.
+
+For a **copyable** starting point, use the [project write policy template](agent-memory.md#project-write-policy-template-copy-and-edit) in the AI memory playbook. (Japanese text lives in `agent-memory.ja.md` in this repo; it is excluded from the English Pages build per `mkdocs.yml` exclude rules.)
+
 All tools return a JSON string. On error they always return the same shape:
 
 ```json
 { "error": { "code": "slug", "message": "human-readable text" } }
 ```
+
+### Stable read tools: backing CLI contracts
+
+Stable-candidate read tools are thin wrappers around the same inputs the CLI
+accepts today. When tightening behavior, prefer changing **experimental JSON
+innards** or adding **compatible fields** before changing documented CLI flags or
+stable JSON top-level keys referenced here.
+
+| MCP tool | Primary backing command / JSON |
+|----------|----------------------------------|
+| `liel_overview` | `liel stats --format json` |
+| `liel_find` / `liel_explore` | Graph reads + property filters (same data as CLI/Python record views) |
+| `liel_trace` | `liel trace --format json` |
+| `liel_map` | Graph structure → Mermaid (shares trace-style node metadata) |
+| `liel_diff` | `liel diff --format json` |
+| `liel_merge_preview` | `liel merge --dry-run --format json` |
+| `liel_manifest` | `liel manifest` (stdout JSON) |
 
 ---
 
@@ -139,6 +167,10 @@ stdout JSON — suitable for signing workflows.
 ---
 
 ## Write tools
+
+**Status:** experimental for `1.0`. Use these tools only with an explicit project
+memory policy and stable-key convention; otherwise prefer read tools plus a
+human-reviewed CLI/Python write path.
 
 The MCP write tools do not currently add standard metadata properties such as
 creation timestamps, update timestamps, or session IDs. A reserved metadata

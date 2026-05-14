@@ -6,6 +6,27 @@
 - How CLI reference pages split responsibility: [Reference index](index.md) (*CLI documentation map*).
 - Which automation surface maps to which doc (CI / MCP / viewer): [Machine-readable surfaces](json-surfaces.md).
 
+
+## Compatibility policy for `1.0`
+
+The accepted `1.0` direction is to make automation depend on JSON, not human
+text. Scripts should pass `--format json` (or consume commands whose stdout is
+always JSON, such as `manifest` / `export`) and should not parse default text
+output.
+
+Field stability is command-specific:
+
+- Stable contract: documented top-level fields, success exit codes, and required
+  identifiers in this inventory and in [CLI merge report](cli-merge-report.md).
+- Compatible additions: new optional fields may be added in minor releases; JSON
+  consumers should ignore fields they do not understand.
+- Experimental diagnostics: nested diagnostic details may grow when documented as
+  such, but stable buckets like `can_merge`, `conflicts`, `warnings`, counts, and
+  path fields remain predictable.
+- Breaking changes: removing fields, renaming fields, or changing the meaning of
+  documented stable fields waits for a major boundary or an explicit versioned
+  surface such as `export_version`.
+
 ## Summary (roles, JSON, exit codes)
 
 | Role | Command | `--format json` | Typical success exit | Notes |
@@ -74,11 +95,25 @@ Always exits `0` on success.
 
 JSON object includes `manifest_version`, `liel_format`, `node_count`, `edge_count`, sorted `nodes` and `edges` arrays with normalized properties (see implementation in `python/liel/cli/manifest.py`). Intended for deterministic review and signing — **not** identical to `export` (different version field and purpose).
 
+For `1.0`, the signing payload is the normalized manifest JSON. Keep key order and scalar normalization deterministic across supported OS/Python combinations. Display-only metadata may evolve separately from the signed payload.
+
+**Versioning:** `manifest_version` (in the manifest JSON) and `signature_version` /
+`manifest_version` (in the signature sidecar) must stay aligned with
+`python/liel/cli/manifest.py` and `python/liel/cli/signature.py`. Increment them
+when the normalized signing payload changes incompatibly so older signatures
+fail closed instead of verifying the wrong bytes.
+
+**JSON compliance:** manifest serialization uses `allow_nan=False`. Property
+values that are not finite IEEE-754 floats (`NaN`, `inf`) cannot be emitted as
+standard JSON and therefore **fail manifest generation** until the graph is
+repaired or the offending properties are removed — treat that as an
+operational constraint for signing workflows.
+
 ---
 
 ## `liel export` / `liel import`
 
-**Export** JSON includes `export_version`, `liel_format`, counts, and sorted `nodes` / `edges` (`python/liel/cli/exchange.py`).
+**Export** JSON includes `export_version`, `liel_format`, counts, and sorted `nodes` / `edges` (`python/liel/cli/exchange.py`). `export_version` is the compatibility boundary: compatible field additions may happen within `1.x`, but removals, renamed fields, or incompatible meaning changes require a new export version. Import should fail closed on unsupported export versions rather than guessing.
 
 **Import** with `--format json` returns:
 

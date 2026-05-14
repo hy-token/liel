@@ -1,12 +1,14 @@
 (function () {
   const MAX_GRAPH_NODES = 300;
   const MAX_GRAPH_EDGES = 600;
+  const SAMPLE_EXPORT_URL = "./fixtures/trace-why-postgres.export.json";
 
   const state = {
     exportData: null,
     nodeTable: null,
     edgeTable: null,
     graph: null,
+    statusMessage: null,
   };
 
   const DEFAULT_EXPORT = {
@@ -162,8 +164,8 @@
   });
 
 
-  document.getElementById("resetToSample").addEventListener("click", () => {
-    loadBundledSample();
+  document.getElementById("resetToSample").addEventListener("click", async () => {
+    await loadBundledSample();
     renderAll();
   });
 
@@ -381,15 +383,33 @@
 
     const loaded = [state.exportData ? "export" : null].filter(Boolean);
     setStatus(
-      loaded.length === 0
-        ? "No files loaded yet."
-        : `Loaded: ${loaded.join(", ")} JSON`
+      state.statusMessage ||
+        (loaded.length === 0
+          ? "No files loaded yet."
+          : `Loaded: ${loaded.join(", ")} JSON`)
     );
+    state.statusMessage = null;
   }
 
-  function loadBundledSample() {
-    // Keep a default dataset visible so users can understand the UI immediately.
-    state.exportData = JSON.parse(JSON.stringify(DEFAULT_EXPORT));
+  async function fetchBundledSample() {
+    const response = await fetch(SAMPLE_EXPORT_URL, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} while loading ${SAMPLE_EXPORT_URL}`);
+    }
+    return response.json();
+  }
+
+  async function loadBundledSample() {
+    // Prefer the checked-in export fixture so docs, tests, and viewer code share
+    // the same contract sample. Keep the embedded object as a file:// fallback
+    // for browsers that block local fetches when the HTML is opened directly.
+    try {
+      state.exportData = await fetchBundledSample();
+    } catch (err) {
+      state.exportData = JSON.parse(JSON.stringify(DEFAULT_EXPORT));
+      state.statusMessage =
+        `Loaded embedded fallback sample because ${SAMPLE_EXPORT_URL} could not be fetched: ${String(err)}`;
+    }
   }
 
   function escapeHtml(text) {
@@ -401,6 +421,5 @@
       .replace(/'/g, "&#039;");
   }
 
-  loadBundledSample();
-  renderAll();
+  loadBundledSample().then(renderAll);
 })();

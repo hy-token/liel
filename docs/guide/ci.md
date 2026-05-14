@@ -90,8 +90,34 @@ For signing workflows (`liel sign` / `liel verify`), store keys using GitHub
 **secrets** and pass them to non-interactive verify steps; never commit secret
 material.
 
+## Release smoke matrix
+
+The accepted `1.0` direction keeps Ubuntu as the normal CI gate for now and
+records Windows / macOS / Linux smoke in the maintainer release evidence log. Do
+not promote the full OS matrix to a hard gate until one clean dry-run has passed
+on all three operating systems.
+
+For each release candidate, the required evidence set is:
+
+- docs build (`mkdocs build --strict`)
+- `liel stats --format json`
+- `liel manifest`
+- `liel verify` against the release signature/key material
+- `liel export`
+- `liel import`
+
+Merge preview is required only for repositories that publish a merge policy or
+identity rule; otherwise record it as not applicable.
+
+| OS | Required release evidence | Gate status |
+|----|---------------------------|-------------|
+| Ubuntu | wheel install, `liel-demo`, docs build, `stats`, `manifest`, `verify`, `export`, `import` | CI gate + release evidence |
+| macOS | wheel install, `liel-demo`, docs build, `stats`, `manifest`, `verify`, `export`, `import` | release evidence until one clean full-matrix dry-run |
+| Windows | wheel install, `liel-demo`, docs build, `stats`, `manifest`, `verify`, `export`, `import` | release evidence until one clean full-matrix dry-run |
+
 ## Related documentation
 
 - [Command line](cli.md) — full CLI reference
 - [CLI JSON inventory](../reference/cli-json-inventory.md) — exit codes and JSON roles
 - [Reliability](../reference/reliability.md) — crash recovery and commit semantics
+- [Operations guide](operations.md) — backup, verify, repair, and release smoke runbook

@@ -6,9 +6,10 @@
 [![Docs](https://img.shields.io/badge/docs-site-blue)](https://hy-token.github.io/liel/)
 [![Release](https://img.shields.io/github/v/tag/hy-token/liel?label=release)](https://github.com/hy-token/liel/tags)
 
-## Git-compatible memory for AI agents.
+## Git-compatible working memory for AI agents.
 
-One local file you can merge, diff, trace, and inspect.
+Review, diff, merge, trace, and inspect coding-agent memory as a single local
+file.
 
 **Docs:** [https://hy-token.github.io/liel/](https://hy-token.github.io/liel/)
 
@@ -21,29 +22,32 @@ liel-demo
 
 Runs fully local. No API keys required (LLM optional).
 
-`liel` is a single-file graph memory layer for people using local AI agents while coding. One `.liel` file stores decisions, tasks, sources, files, facts, and the relationships between them, so tools can recall *why* decisions were made, not just what was said.
+## The problem
 
-The core is a small Rust **property graph** engine with **Python (PyO3)** bindings and optional MCP tools. No server, no cloud, no daemon.
+AI coding agents are starting to keep memory, but that memory is often opaque:
+it lives in chat history, local notes, vector stores, or one-off summaries that
+are hard to review when branches, sessions, or agents diverge.
 
-## Why decisions disappear
+`liel` treats memory as a local artifact. One `.liel` file stores decisions,
+tasks, sources, files, facts, and explicit relationships, so you can see *why*
+a decision was made and what it connects to.
 
-Chat turns roll off the context window, but the graph still holds *how* a choice was reached. `liel trace` walks a shortest path so that reasoning stays visible—not just the final answer.
+The core is a small Rust **property graph** engine with **Python (PyO3)**
+bindings and optional MCP tools. No server, no cloud, no daemon.
 
-![`liel trace` narrative output (shortest path through decision nodes)](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/demo-trace.wsl.gif)
+## 30-second path
 
-The name *liel* comes from the French *lier* — to connect, to bind.
-
-## Three quick demos (~30 seconds each)
-
-Use the **fixed SaaS-style memory** generator (two agents diverge on the same bug/decision graph). From a checkout with `liel` on your `PATH` and Python 3.9+:
+Use the **fixed SaaS-style memory** generator (two agents diverge on the same
+bug/decision graph). From a checkout with `liel` on your `PATH` and Python 3.9+:
 
 ```bash
 python examples/demo_memory/make_demo_files.py --force
 ```
 
-Default output: `target/demo-memory/` (`base.liel`, `agent-a.liel`, `agent-b.liel`, `identity-rules.json`).
+Default output: `target/demo-memory/` (`base.liel`, `agent-a.liel`,
+`agent-b.liel`, `identity-rules.json`).
 
-1. **Parallel merge preview (two agents, one reviewable report)** — the story behind “Git-compatible working memory”:
+1. **Merge preview: review two agent memories before writing**
 
    ```bash
    liel merge target/demo-memory/agent-a.liel target/demo-memory/agent-b.liel \
@@ -51,20 +55,48 @@ Default output: `target/demo-memory/` (`base.liel`, `agent-a.liel`, `agent-b.lie
      --edge-strategy idempotent --format json
    ```
 
-2. **Diff with stable identity (what drifted between branches of memory)**:
+2. **Diff: see what drifted between branches of memory**
 
    ```bash
    liel diff target/demo-memory/base.liel target/demo-memory/agent-a.liel \
      --identity-rules target/demo-memory/identity-rules.json
    ```
 
-3. **One-file inspect (portable artifact)**:
+3. **Inspect: confirm the file opens and summarize what it remembers**
 
    ```bash
    liel stats target/demo-memory/base.liel --format json
    ```
 
 For more command-line examples, see the [command-line guide](docs/guide/cli.md).
+For a read-only browser view, see [Inspect your memory](docs/guide/inspect.md)
+and the [sample viewer](docs/guide/sample-viewer.md).
+
+## Where it fits
+
+- Coding-agent project memory that should survive a single chat session.
+- Reviewable memory artifacts you can copy, commit, diff, merge, sign, verify,
+  export, and inspect.
+- Claude / MCP workflows that need local durable memory without a hosted service.
+- Small local-first tools that want a single-file graph memory substrate.
+
+## Where it does not fit
+
+- Hosted dashboards or browser-side editing UI.
+- A full agent runtime, automatic memory extraction system, or semantic memory
+  service.
+- Core vector ANN / embedding management.
+- Server-grade concurrent writes to the same file.
+
+## Why decisions disappear
+
+Chat turns roll off the context window, but the graph still holds *how* a choice
+was reached. `liel trace` walks a shortest path so that reasoning stays
+visible—not just the final answer.
+
+![`liel trace` narrative output (shortest path through decision nodes)](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/demo-trace.wsl.gif)
+
+The name *liel* comes from the French *lier* — to connect, to bind.
 
 ## Coding memory helpers (experimental)
 
@@ -184,12 +216,15 @@ Mem0, Letta, and Zep may be a better fit when you want a hosted service, a full 
 - [Why liel](https://github.com/hy-token/liel/blob/main/docs/why-liel.md) - what it solves and what it does not
 - [Quickstart](https://github.com/hy-token/liel/blob/main/docs/guide/quickstart.md) - demo, Python, and MCP paths
 - [AI memory playbook](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/agent-memory.md) - recommended LLM memory pattern
+- [Claude project-memory workflow](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/claude-workflow.md) - setup, record, trace, and review with Claude
 - [Sample CLAUDE.md](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/samples/CLAUDE.md) - Claude project-instructions template
 - [Architecture](https://github.com/hy-token/liel/blob/main/docs/design/architecture.md) - system layers and the Mermaid diagram
 - [Python guide](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md) - API, transactions, traversal, [coding memory helpers](https://github.com/hy-token/liel/blob/main/docs/guide/connectors/python.md#coding-memory-helpers)
 - [MCP guide](https://github.com/hy-token/liel/blob/main/docs/guide/mcp/index.md) - Claude and other MCP-capable tools
 - [Feature list](https://github.com/hy-token/liel/blob/main/docs/reference/features.md) - what is provided at a glance
+- [Inspect your memory](https://github.com/hy-token/liel/blob/main/docs/guide/inspect.md) - read-only stats, export, viewer, diff, merge preview, and trace path
 - [Reliability](https://github.com/hy-token/liel/blob/main/docs/reference/reliability.md) - commit semantics, crash recovery, repair
+- [Operations guide](https://github.com/hy-token/liel/blob/main/docs/guide/operations.md) - backup, verify, repair, and release smoke runbook
 - [Format spec](https://github.com/hy-token/liel/blob/main/docs/reference/format-spec.md) - byte-level `.liel` file format
 - [Product trade-offs](https://github.com/hy-token/liel/blob/main/docs/design/product-tradeoffs.md) - what liel does not do, and why
 

@@ -10,6 +10,7 @@ memory rules that apply to any AI tool, start with the
 |---|---|
 | [AI memory playbook](agent-memory.md) | Recommended operating pattern for any LLM |
 | [Sample `CLAUDE.md`](samples/CLAUDE.md) | Copyable Claude project-instructions sample |
+| [Claude project-memory workflow](claude-workflow.md) | End-to-end setup → record → trace → review sample |
 | This page | Claude-specific setup pointer |
 
 ## Add the memory policy
@@ -36,3 +37,7 @@ read discipline and write discipline:
 - use nodes for entities and edges for relationships
 
 Those rules are explained in the [AI memory playbook](agent-memory.md).
+
+## End-to-end workflow
+
+After the basic setup, follow the [Claude project-memory workflow](claude-workflow.md) for a reproducible setup → memory creation → record → trace → review path.

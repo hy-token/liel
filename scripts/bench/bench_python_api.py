@@ -12,6 +12,10 @@ import time
 from pathlib import Path
 
 import liel
+from liel.cli.diff import diff_files
+from liel.cli.exchange import build_export_bytes, import_file
+from liel.cli.merge import merge_files
+from liel.cli.trace import build_trace_payload
 
 
 def _format_result(
@@ -41,8 +45,14 @@ def run_benchmarks(node_count: int, workdir: Path) -> list[str]:
     results: list[str] = []
     workdir.mkdir(parents=True, exist_ok=True)
     db_path = workdir / "bench.liel"
+    export_path = workdir / "bench.export.json"
+    imported_path = workdir / "bench.imported.liel"
     if db_path.exists():
         db_path.unlink()
+    if export_path.exists():
+        export_path.unlink()
+    if imported_path.exists():
+        imported_path.unlink()
 
     with liel.open(str(db_path)) as db:
         start = time.perf_counter()
@@ -79,7 +89,71 @@ def run_benchmarks(node_count: int, workdir: Path) -> list[str]:
             _format_result("all_nodes_records", elapsed, len(records), operations=len(records))
         )
 
+    start = time.perf_counter()
+    export_bytes = build_export_bytes(db_path)
+    export_path.write_bytes(export_bytes)
+    elapsed = time.perf_counter() - start
+    results.append(_format_result("export_json", elapsed, len(export_bytes), count_label="bytes"))
+
+    start = time.perf_counter()
+    import_report = import_file(export_path, imported_path)
+    elapsed = time.perf_counter() - start
+    results.append(
+        _format_result(
+            "import_roundtrip",
+            elapsed,
+            import_report["nodes_imported"] + import_report["edges_imported"],
+            count_label="records",
+        )
+    )
+
+    start = time.perf_counter()
+    diff_report = diff_files(db_path, imported_path, node_key=["ordinal"])
+    elapsed = time.perf_counter() - start
+    diff_count = sum(
+        len(diff_report[kind][bucket])
+        for kind in ("nodes", "edges")
+        for bucket in ("added", "removed", "changed")
+    )
+    results.append(_format_result("diff_roundtrip", elapsed, diff_count, count_label="changes"))
+
+    start = time.perf_counter()
+    merge_report = merge_files(
+        db_path,
+        imported_path,
+        None,
+        dry_run=True,
+        node_key=["ordinal"],
+        edge_strategy="idempotent",
+    )
+    elapsed = time.perf_counter() - start
+    results.append(
+        _format_result(
+            "merge_preview",
+            elapsed,
+            merge_report["nodes_reused"] + merge_report["edges_reused"],
+            count_label="reused",
+        )
+    )
+
+    with liel.open(str(db_path)) as db:
+        start = time.perf_counter()
+        trace_payload = build_trace_payload(
+            db,
+            from_node=1,
+            to_node=node_count,
+            edge_label="NEXT",
+            source_path=str(db_path),
+        )
+        elapsed = time.perf_counter() - start
+    trace_nodes = len(trace_payload["path"] or [])
+    results.append(
+        _format_result("trace_full_path", elapsed, trace_nodes, count_label="path_nodes")
+    )
+
     results.append(f"database_path         {db_path}")
+    results.append(f"export_path           {export_path}")
+    results.append(f"imported_path         {imported_path}")
     results.append(f"file_size             {_format_size(db_path.stat().st_size)}")
     return results
 

@@ -4,6 +4,12 @@ This page documents the **JSON object** printed by `liel merge` when `--format j
 
 `liel` does not decide which memory is “semantically true”. It reports **mechanical** merge results, **structural blockers** (`can_merge: false`), and **review hints** (`warnings`) when policies keep or drop values on reused nodes.
 
+For `1.0`, the stable automation contract is the documented top-level fields,
+conflict bucket names, `can_merge`, `warnings`, and key-aware identity metadata.
+Diagnostic detail fields may receive compatible additions; consumers should
+ignore unknown fields and unknown future `type` values after displaying their
+`message`.
+
 ---
 
 ## Top-level fields

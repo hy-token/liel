@@ -97,6 +97,24 @@ with liel.open("my.liel") as db:
     ...
 ```
 
+## `1.0` stable Python surface (narrow contract)
+
+For `1.0`, treat **`liel.open` / `GraphDB` / `Node` / `Edge` / query types / merge
+reports / the exceptions exported from `liel`** as the compatibility surface that
+tracks the type stub [`python/liel/liel.pyi`](https://github.com/hy-token/liel/blob/main/python/liel/liel.pyi).
+`tests/python/test_public_api_surface.py` guards that the runtime still exposes
+the same public symbols and `GraphDB` method names as the stub.
+
+- **Stable target:** graph CRUD, traversal helpers, transactions, `info()`,
+  `vacuum()`, `clear()`, `merge_from()`, and maintenance **`repair_adjacency()`**
+  whose return value keeps the documented summary counters
+  **`{"nodes_rewritten": int, "edges_relinked": int}`** available (see
+  [Operations](../operations.md) and the class reference below).
+- **Experimental:** [`liel.coding_memory`](#coding-memory-helpers) and any future
+  ergonomics layers until the changelog explicitly promotes them.
+
+The full label matrix lives in [`1.0` readiness](https://github.com/hy-token/liel/blob/main/docs/reference/1-0-readiness.md).
+
 ---
 
 ## Class reference

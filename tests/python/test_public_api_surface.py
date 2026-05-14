@@ -72,6 +72,7 @@ def test_runtime_classes_expose_stubbed_methods():
         "merge_from",
         "vacuum",
         "clear",
+        "repair_adjacency",
         "info",
     }
     node_methods = {"get", "keys"}
@@ -104,3 +105,16 @@ def test_runtime_classes_expose_stubbed_methods():
             assert hasattr(edge_query, name), f"EdgeQuery is missing method {name!r}"
         for name in merge_report_attrs:
             assert hasattr(merge_report, name), f"MergeReport is missing attribute {name!r}"
+
+
+def test_repair_adjacency_returns_stable_summary_keys():
+    """1.0 contract: documented summary counters stay available."""
+    with liel.open(":memory:") as db:
+        a = db.add_node(["N"], k=1)
+        b = db.add_node(["N"], k=2)
+        db.add_edge(a, "E", b)
+        db.commit()
+        report = db.repair_adjacency()
+    assert {"nodes_rewritten", "edges_relinked"}.issubset(report)
+    assert isinstance(report["nodes_rewritten"], int)
+    assert isinstance(report["edges_relinked"], int)

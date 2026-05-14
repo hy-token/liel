@@ -1,0 +1,174 @@
+{
+  "edge_count": 9,
+  "edges": [
+    {
+      "from_node": 2,
+      "id": 1,
+      "label": "SUPPORTS",
+      "properties": {
+        "why": "ACID and consistency needs"
+      },
+      "to_node": 6
+    },
+    {
+      "from_node": 3,
+      "id": 2,
+      "label": "REJECTED_FOR",
+      "properties": {
+        "why": "fit for scale, weaker transactional fit"
+      },
+      "to_node": 6
+    },
+    {
+      "from_node": 4,
+      "id": 3,
+      "label": "MOTIVATED",
+      "properties": {
+        "incident": "duplicate-charge",
+        "severity": "high"
+      },
+      "to_node": 6
+    },
+    {
+      "from_node": 5,
+      "id": 4,
+      "label": "REQUIRED",
+      "properties": {
+        "requirement": "audit-trail"
+      },
+      "to_node": 6
+    },
+    {
+      "from_node": 6,
+      "id": 5,
+      "label": "IMPLEMENTED_IN",
+      "properties": {
+        "file_role": "persistence-layer"
+      },
+      "to_node": 7
+    },
+    {
+      "from_node": 1,
+      "id": 6,
+      "label": "LEARNED_FROM",
+      "properties": {
+        "evidence": "incident review"
+      },
+      "to_node": 4
+    },
+    {
+      "from_node": 1,
+      "id": 7,
+      "label": "CONSTRAINED_BY",
+      "properties": {
+        "source": "SOC2"
+      },
+      "to_node": 5
+    },
+    {
+      "from_node": 1,
+      "id": 8,
+      "label": "CONSIDERED",
+      "properties": {
+        "outcome": "rejected"
+      },
+      "to_node": 3
+    },
+    {
+      "from_node": 1,
+      "id": 9,
+      "label": "CONSIDERED",
+      "properties": {
+        "outcome": "selected"
+      },
+      "to_node": 2
+    }
+  ],
+  "export_version": 1,
+  "liel_format": "1.0",
+  "node_count": 7,
+  "nodes": [
+    {
+      "id": 1,
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "key": "task:billing-service",
+        "status": "done",
+        "title": "Implement billing service",
+        "trace_prompt": "Why PostgreSQL for billing?"
+      }
+    },
+    {
+      "id": 2,
+      "labels": [
+        "Option"
+      ],
+      "properties": {
+        "key": "option:postgres",
+        "key_factor": "ACID transactions",
+        "summary": "ACID transactions and strong consistency",
+        "title": "Use PostgreSQL"
+      }
+    },
+    {
+      "id": 3,
+      "labels": [
+        "Option"
+      ],
+      "properties": {
+        "key": "option:dynamodb",
+        "rejection_note": "better for scale, not for this use case",
+        "summary": "Scalable and operationally simple",
+        "title": "Use DynamoDB"
+      }
+    },
+    {
+      "id": 4,
+      "labels": [
+        "Bug"
+      ],
+      "properties": {
+        "key": "bug:duplicate-charge",
+        "severity": "high",
+        "summary": "Previous eventual consistency issue caused double billing",
+        "title": "Duplicate charge incident"
+      }
+    },
+    {
+      "id": 5,
+      "labels": [
+        "Requirement"
+      ],
+      "properties": {
+        "key": "requirement:audit-trail",
+        "source": "SOC2 review",
+        "summary": "Billing records must be traceable and immutable",
+        "title": "Audit trail requirement"
+      }
+    },
+    {
+      "id": 6,
+      "labels": [
+        "Decision"
+      ],
+      "properties": {
+        "key": "decision:billing-postgres",
+        "reason": "ACID transactions and strong consistency; Prevents duplicate charges after the prior incident; Supports auditability and immutable billing records",
+        "title": "Choose PostgreSQL for billing"
+      }
+    },
+    {
+      "id": 7,
+      "labels": [
+        "File"
+      ],
+      "properties": {
+        "key": "file:billing/db.py",
+        "path": "billing/db.py",
+        "summary": "Billing persistence layer"
+      }
+    }
+  ]
+}

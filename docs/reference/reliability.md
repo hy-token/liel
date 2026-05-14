@@ -177,6 +177,8 @@ small and predictable.
   coordinating with the writer process.
 - For MCP integration, route writes through one MCP server or owner process
   rather than letting multiple clients open the file directly.
+- For a copyable backup / manifest / sign / verify / export / repair runbook,
+  use the [operations guide](../guide/operations.md).
 
 ---
 

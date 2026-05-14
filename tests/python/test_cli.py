@@ -20,6 +20,28 @@ from liel.cli import stats as cli_stats
 from liel.cli.common import CliError, refuse_overwrite
 
 
+def _assert_merge_json_stable_top_level(payload: dict) -> None:
+    """Documented top-level keys from docs/reference/cli-merge-report.md."""
+    required = {
+        "dry_run",
+        "can_merge",
+        "conflicts",
+        "warnings",
+        "output",
+        "nodes_created",
+        "nodes_reused",
+        "edges_created",
+        "edges_reused",
+        "node_id_map",
+        "edge_id_map",
+    }
+    assert required.issubset(payload.keys())
+    for key in ("nodes_created", "nodes_reused", "edges_created", "edges_reused"):
+        assert isinstance(payload[key], int)
+    for key in ("node_id_map", "edge_id_map"):
+        assert isinstance(payload[key], dict)
+
+
 def test_cli_without_args_prints_help(capsys):
     assert cli.main([]) == 0
     out = capsys.readouterr().out
@@ -675,6 +697,7 @@ def test_cli_merge_dry_run_reports_missing_node_key_conflict(tmp_path, capsys):
     assert payload["conflicts"][0]["type"] == "missing_node_key"
     assert payload["conflicts"][0]["side"] == "source"
     assert payload["node_id_map"] == {}
+    _assert_merge_json_stable_top_level(payload)
 
 
 def test_cli_merge_fail_on_conflict_requires_dry_run(tmp_path, capsys):
@@ -727,6 +750,7 @@ def test_cli_merge_fail_on_conflict_exits_when_blocked(tmp_path, capsys):
     assert cli.main(argv) == 1
     payload = json.loads(capsys.readouterr().out)
     assert payload["can_merge"] is False
+    _assert_merge_json_stable_top_level(payload)
 
 
 def test_cli_merge_dry_run_reports_duplicate_destination_key_conflict(tmp_path, capsys):
@@ -801,6 +825,7 @@ def test_cli_merge_dry_run_reports_property_conflict_warnings(tmp_path, capsys):
             "message": "tag='A' property 'status' differs; source_ignored by keep_dst",
         }
     ]
+    _assert_merge_json_stable_top_level(payload)
 
 
 def test_cli_merge_dry_run_prints_warning_summary(tmp_path, capsys):
@@ -1408,6 +1433,132 @@ def test_cli_stats_prints_json_summary(tmp_path, capsys):
     assert payload["edge_labels"] == {"KNOWS": 1}
 
 
+def test_cli_stats_json_includes_documented_stable_fields(tmp_path, capsys):
+    """Stable keys per docs/reference/cli-json-inventory.md (`liel stats --format json`)."""
+    source = tmp_path / "source.liel"
+    with liel.open(str(source)) as db:
+        db.add_node(["Person"], name="Alice")
+        db.commit()
+
+    assert cli.main(["stats", str(source), "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    for key in (
+        "path",
+        "liel_format",
+        "file_size",
+        "node_count",
+        "edge_count",
+        "node_labels",
+        "edge_labels",
+    ):
+        assert key in payload
+    assert isinstance(payload["file_size"], int)
+    assert isinstance(payload["node_labels"], dict)
+    assert isinstance(payload["edge_labels"], dict)
+
+
+def test_cli_trace_json_includes_documented_stable_fields(tmp_path, capsys):
+    """Stable keys per docs/reference/cli-json-inventory.md (`liel trace --format json`)."""
+    path = tmp_path / "g.liel"
+    with liel.open(str(path)) as db:
+        a = db.add_node(["N"], name="A")
+        b = db.add_node(["N"], name="B")
+        db.add_edge(a, "NEXT", b)
+        db.commit()
+    a_id, b_id = a.id, b.id
+
+    assert (
+        cli.main(
+            [
+                "trace",
+                str(path),
+                "--from",
+                str(a_id),
+                "--to",
+                str(b_id),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    for key in (
+        "source",
+        "from_node",
+        "to_node",
+        "edge_label",
+        "path",
+        "path_hop_labels",
+        "reasoning_branches",
+        "mermaid",
+    ):
+        assert key in payload
+
+
+def test_cli_diff_json_stable_top_level_on_identical_graphs(tmp_path, capsys):
+    """Stable top-level keys per docs/reference/cli-json-inventory.md."""
+    left = tmp_path / "left.liel"
+    right = tmp_path / "right.liel"
+    with liel.open(str(left)) as db:
+        a = db.add_node(["File"], path="src/a.py")
+        b = db.add_node(["File"], path="src/b.py")
+        db.add_edge(a, "DEPENDS_ON", b)
+        db.commit()
+    with liel.open(str(right)) as db:
+        a = db.add_node(["File"], path="src/a.py")
+        b = db.add_node(["File"], path="src/b.py")
+        db.add_edge(a, "DEPENDS_ON", b)
+        db.commit()
+
+    assert cli.main(["diff", str(left), str(right), "--node-key", "path", "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    for key in ("changed", "left", "right", "nodes", "edges"):
+        assert key in payload
+    assert payload["changed"] is False
+    assert set(payload["left"]) == {"path", "nodes", "edges"}
+    assert set(payload["right"]) == {"path", "nodes", "edges"}
+
+
+def test_cli_merge_json_includes_documented_top_level_fields(capsys, monkeypatch):
+    """Top-level keys per docs/reference/cli-merge-report.md."""
+    monkeypatch.setattr(
+        cli_merge,
+        "merge_files",
+        lambda *args, **kwargs: _merge_payload(output="merged.liel"),
+    )
+
+    assert (
+        cli.main(
+            [
+                "merge",
+                "left.liel",
+                "right.liel",
+                "-o",
+                "merged.liel",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    for key in (
+        "dry_run",
+        "can_merge",
+        "conflicts",
+        "warnings",
+        "output",
+        "nodes_created",
+        "nodes_reused",
+        "edges_created",
+        "edges_reused",
+        "node_id_map",
+        "edge_id_map",
+    ):
+        assert key in payload
+
+
 def test_stats_file_sorts_label_counts(tmp_path):
     source = tmp_path / "source.liel"
     with liel.open(str(source)) as db:
@@ -1579,6 +1730,61 @@ def test_cli_output_commands_accept_force_for_existing_output(tmp_path):
 
         assert cli.main(args) == 0, name
         assert output.exists()
+
+
+def test_cli_import_rejects_unsupported_export_version(tmp_path, capsys):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text(
+        json.dumps(
+            {
+                "export_version": 999,
+                "liel_format": "1.0",
+                "node_count": 0,
+                "edge_count": 0,
+                "nodes": [],
+                "edges": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert cli.main(["import", str(source), "-o", str(output)]) == 2
+    assert "unsupported export_version: 999" in capsys.readouterr().err
+    assert not output.exists()
+
+
+def test_cli_import_ignores_compatible_unknown_export_fields(tmp_path, capsys):
+    source = tmp_path / "graph.json"
+    output = tmp_path / "restored.liel"
+    source.write_text(
+        json.dumps(
+            {
+                "export_version": 1,
+                "liel_format": "1.0",
+                "node_count": 1,
+                "edge_count": 0,
+                "x_future_top_level": {"ignored": True},
+                "nodes": [
+                    {
+                        "id": 7,
+                        "labels": ["Person"],
+                        "properties": {"name": "Alice"},
+                        "x_future_node_field": "ignored",
+                    }
+                ],
+                "edges": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert cli.main(["import", str(source), "-o", str(output), "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["nodes_imported"] == 1
+    assert payload["node_id_map"] == {"7": 1}
+    with liel.open(str(output)) as db:
+        assert db.all_nodes_as_records()[0]["name"] == "Alice"
 
 
 def test_import_rejects_missing_edge_endpoint(tmp_path):

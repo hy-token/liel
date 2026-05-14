@@ -48,6 +48,29 @@ python -m pytest tests/python -q --basetemp ./target/pytest-temp
 CI already does this on Windows, so local failures around `%TEMP%` usually
 indicate an environment-specific permission issue rather than a product bug.
 
+## Full maintainer gate (before merge / release)
+
+The complete checklist (fmt, clippy, audit, ruff, tests, MkDocs, packaging) lives
+in **[`CLAUDE.md`](CLAUDE.md)** under *コミット前チェックリスト*. Typical local
+sequence after `pip install -r requirements-dev.txt` and `maturin develop`:
+
+```bash
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo audit
+ruff format --check python tests/python
+ruff check python tests/python
+cargo test --locked
+python -m pytest tests/python -q --basetemp ./target/pytest-temp
+python -m mkdocs build --strict
+maturin build --release
+python -m twine check dist/*
+```
+
+If `twine` is not on your `PATH`, use `python -m twine` (Twine is bundled in
+`requirements-dev.txt`). Record outcomes under `docs/internal/process/release-evidence/`
+when preparing a versioned release.
+
 ## Pre-commit hooks (optional but recommended)
 
 CI runs `cargo fmt --check`, `cargo clippy -D warnings`, and `ruff check` on every PR. To catch the same issues locally before you commit, install the pre-commit hooks:

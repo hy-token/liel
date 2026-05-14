@@ -156,3 +156,7 @@ for Claude, Codex, and Cursor, start with **[AI memory playbook](agent-memory.md
 For Claude-specific setup notes, see **[Claude setup](claude.md)**.
 For a copyable project-instructions sample, see
 **[sample `CLAUDE.md`](samples/CLAUDE.md)**.
+
+## End-to-end sample
+
+- [Claude project-memory workflow](claude-workflow.md) — first full ecosystem sample: setup, memory creation, record, trace, and review.

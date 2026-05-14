@@ -21,5 +21,10 @@ Reference UIs and runnable scripts that are not the core product:
 
 | Document | Content |
 |---|---|
+| [Inspect your memory](inspect.md) | Read-only inspection path with stats, export, viewer, diff, merge preview, and trace |
 | [Sample viewer (read-only)](sample-viewer.md) | JSON-first browser UI for `liel export` (read-only; [Viewer JSON contract](../reference/viewer-json.md)) |
 | [Example Python scripts](../samples/example-scripts.md) | Indexed list of `examples/*.py` and related folders in the repo |
+
+## Operate project memory
+
+- [Operations: backup, verify, repair](operations.md) — closed-file backups, manifest/sign/verify, JSON export fallback, repair, and release smoke.

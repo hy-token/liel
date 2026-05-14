@@ -1,13 +1,14 @@
 # Coding memory example (Wave D)
 
-This folder shows the optional Python helper `liel.coding_memory` — thin
-`add_node` / `add_edge` conventions for a **coding-agent-shaped** memory file
-(``File`` / ``Decision`` / ``Task`` with ``task_kind="bug"``).
+This folder shows the optional, **experimental** Python helper
+`liel.coding_memory`: thin `add_node` / `add_edge` conventions for a
+**coding-agent-shaped** memory file (``File`` / ``Decision`` / ``Task`` with
+``task_kind="bug"``).
 
-Design background (maintainer, Japanese):
+Treat this as a convention layer on top of the stable low-level graph API, not
+as a frozen `1.0` contract. The public guide explains that boundary:
 
-- [`docs/internal/design/coding-memory.ja.md`](../../docs/internal/design/coding-memory.ja.md)
-- [`docs/internal/design/memory-api.ja.md`](../../docs/internal/design/memory-api.ja.md)
+- [`docs/guide/connectors/python.md#coding-memory-helpers`](../../docs/guide/connectors/python.md#coding-memory-helpers)
 
 Run:
 

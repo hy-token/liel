@@ -82,6 +82,7 @@ exclude = [
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests/python"]
+pythonpath = ["."]
 addopts = [
   "-q",
 ]

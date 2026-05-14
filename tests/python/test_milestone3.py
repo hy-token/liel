@@ -124,7 +124,7 @@ def test_repair_adjacency_exists_and_returns_counts(db):
 
     report = db.repair_adjacency()
     assert isinstance(report, dict)
-    assert "nodes_rewritten" in report
-    assert "edges_relinked" in report
+    assert isinstance(report.get("nodes_rewritten"), int)
+    assert isinstance(report.get("edges_relinked"), int)
     assert report["nodes_rewritten"] >= 2
     assert report["edges_relinked"] >= 1

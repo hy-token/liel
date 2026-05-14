@@ -12,8 +12,10 @@ Design stance:
 - rendering: browser UI using embedded JS libraries
 - non-goal: parsing `.liel` binary bytes in the browser
 
-The viewer starts with a bundled sample from the
-`trace-why-postgres` scenario so you can inspect the UI immediately.
+The viewer starts with the fixed `trace-why-postgres.export.json` fixture from the
+`trace-why-postgres` scenario so you can inspect the UI immediately. The docs
+viewer reads it from `docs/guide/sample-viewer/app/fixtures/`; the distributed
+example carries the same file under `examples/sample_viewer/fixtures/`.
 
 ## Quick try
 
@@ -25,8 +27,9 @@ liel export target/demo-memory/base.liel -o target/demo-memory/base.export.json
 ```
 
 Then open `docs/guide/sample-viewer/app/index.html` in your browser. You can keep the
-bundled sample, or load:
+bundled fixture, or load:
 
+- `docs/guide/sample-viewer/app/fixtures/trace-why-postgres.export.json`
 - `target/demo-memory/base.export.json`
 
 ## MkDocs / local preview / GitHub Pages
@@ -39,3 +42,10 @@ site, `mkdocs serve` uses the `/liel/` prefix (same as production):
 
 Published site (after deploy from `hy-token/liel`): `https://hy-token.github.io/liel/guide/sample-viewer/`
 and `https://hy-token.github.io/liel/guide/sample-viewer/app/`.
+
+## Contract fixture
+
+The viewer, docs, and contract tests share the fixed
+`trace-why-postgres.export.json` export fixture. If `liel export` changes shape
+intentionally, update the fixture, [Viewer JSON contract](../reference/viewer-json.md),
+and `tests/python/test_viewer_fixture_contract.py` together.

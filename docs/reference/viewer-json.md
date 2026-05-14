@@ -52,8 +52,9 @@ Reasonable first steps:
 ## Sample viewer status
 
 The Phase 4 E4 sample/reference viewer is complete as a read-only JSON-first
-viewer under `docs/guide/sample-viewer/app/`. It opens with a bundled trace
-scenario sample and can load `liel export` JSON produced from
+viewer under `docs/guide/sample-viewer/app/`. It opens with the fixed
+`trace-why-postgres.export.json` trace scenario fixture and can load
+`liel export` JSON produced from
 `examples/demo_memory`.
 
 The contract remains intentionally narrow:
@@ -63,20 +64,28 @@ The contract remains intentionally narrow:
   `liel trace --format json`, and the same shapes via MCP
 - non-goal: browser-side parsing of `.liel` binary bytes
 
-Repro/smoke:
+Fixed fixture:
+
+```text
+docs/guide/sample-viewer/app/fixtures/trace-why-postgres.export.json
+examples/sample_viewer/fixtures/trace-why-postgres.export.json
+```
+
+Repro/smoke for a freshly generated export:
 
 ```bash
 python examples/demo_memory/make_demo_files.py --force
 liel export target/demo-memory/base.liel -o target/demo-memory/base.export.json
 ```
 
-Open `docs/guide/sample-viewer/app/index.html` and load
-`target/demo-memory/base.export.json`.
+Open `docs/guide/sample-viewer/app/index.html` and load either the fixed
+`trace-why-postgres.export.json` fixture or `target/demo-memory/base.export.json`.
 
 Maintenance checklist:
 
 - If CLI/MCP JSON fields change, update `cli-json-inventory`, `json-surfaces`,
-  and this page together.
+  the fixed `trace-why-postgres.export.json` fixture, contract tests, and this
+  page together.
 - Keep adapter mapping in viewer code; do not parse `.liel` bytes or rely on
   undocumented fields.
 - Keep links aligned across `docs/guide/cli.md`, this page, and

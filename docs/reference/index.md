@@ -11,6 +11,7 @@ Use **one** authoritative page per concern; do not duplicate JSON field lists ac
 | Commands, flags, examples | [Command line guide](../guide/cli.md) |
 | JSON shapes and exit codes (diff, stats, trace, manifest, export, import, and cross-command notes) | [CLI JSON inventory](cli-json-inventory.md) |
 | `liel merge --format json` fields and merge-specific exit semantics | [CLI merge report](cli-merge-report.md) |
+| 1.0 contract status across API, CLI, MCP, reliability, and deferred scope | [1.0 readiness checklist](1-0-readiness.md) |
 | Which document owns which JSON surface (CI, MCP, viewer) | [Machine-readable surfaces](json-surfaces.md) |
 | Viewers and dashboards (no raw `.liel` parsing in the browser) | [Viewer JSON contract](viewer-json.md) |
 | External vector stores alongside `liel` | [Vector hybrid conventions](vector-conventions.md) |
@@ -23,6 +24,7 @@ Use **one** authoritative page per concern; do not duplicate JSON field lists ac
 | [Capability matrix](capability-matrix.md) | Features, CLI, MCP, docs by audience and value | Stakeholder overview in one table |
 | [Feature list](features.md) | Public API and feature coverage | Check what `liel` provides |
 | [Reliability and failure model](reliability.md) | Commits, recovery, failure modes, operational assumptions | Use `liel` as durable state |
+| [1.0 readiness checklist](1-0-readiness.md) | Stable / needs-work / deferred status across public surfaces | Decide whether a behavior is ready for 1.0 |
 | [Benchmarks and file size notes](benchmarks.md) | Local benchmark script and practical `.liel` size estimates | Interpret benchmark output or estimate memory-file size |
 | [Format spec](format-spec.md) | Byte-level `.liel` file layout | Build compatibility tooling or connectors |
 | [CLI merge report](cli-merge-report.md) | `liel merge --format json` payload | CI, MCP, or scripts consuming merge previews |

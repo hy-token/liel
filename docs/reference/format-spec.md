@@ -14,7 +14,10 @@ For the high-level picture and data model, see **[architecture overview](../desi
 > **format version**: 1.0 (`0.x` Beta series). The byte layout is documented
 > as the current contract. Breaking format changes may still happen before
 > `1.0`, but they must be recorded in the [changelog](https://github.com/hy-token/liel/blob/main/CHANGELOG.md) and
-> paired with explicit version/fail-closed handling.
+> paired with explicit version/fail-closed handling. After `1.0`, readers should
+> open current `1.x`-compatible files and fail closed on unsupported future
+> versions; any breaking format change needs changelog visibility plus a
+> migration or export path.
 
 ---
 

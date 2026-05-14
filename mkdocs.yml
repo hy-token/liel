@@ -88,6 +88,7 @@ nav:
       - Capability matrix: reference/capability-matrix.md
       - Feature list: reference/features.md
       - Reliability and failure model: reference/reliability.md
+      - 1.0 readiness checklist: reference/1-0-readiness.md
       - Benchmarks and file size notes: reference/benchmarks.md
       - Format spec: reference/format-spec.md
       - CLI merge report (JSON): reference/cli-merge-report.md
@@ -103,7 +104,9 @@ nav:
       - Overview: guide/index.md
       - Quickstart: guide/quickstart.md
       - Command line: guide/cli.md
+      - Inspect your memory: guide/inspect.md
       - CI / GitHub Actions: guide/ci.md
+      - Operations (backup, verify, repair): guide/operations.md
       - APIs and integrations:
           - Overview: guide/connectors/index.md
           - Python: guide/connectors/python.md
@@ -111,6 +114,7 @@ nav:
           - Overview & quick start: guide/mcp/index.md
           - AI memory playbook: guide/mcp/agent-memory.md
           - Claude setup: guide/mcp/claude.md
+          - Claude project-memory workflow: guide/mcp/claude-workflow.md
           - Sample CLAUDE.md: guide/mcp/samples/CLAUDE.md
           - Tools reference: guide/mcp/tools.md
 
