@@ -1,3 +1,4 @@
+from liel.event_graph import append_event, ensure_actor, list_events
 from liel.liel import (
     AlreadyOpenError,
     CapacityExceededError,
@@ -52,4 +53,7 @@ __all__ = [
     "MergeError",
     "CapacityExceededError",
     "AlreadyOpenError",
+    "append_event",
+    "ensure_actor",
+    "list_events",
 ]

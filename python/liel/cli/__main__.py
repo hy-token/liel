@@ -6,8 +6,17 @@ from collections.abc import Sequence
 
 import liel
 
-from .common import EXIT_ERROR, EXIT_OK, CliError, add_format_argument, emit_json, emit_text
+from .common import (
+    EXIT_ERROR,
+    EXIT_OK,
+    CliError,
+    add_format_argument,
+    emit_json,
+    emit_text,
+)
 from .diff import run as run_diff
+from .events import run_append as run_event_append
+from .events import run_list as run_event_list
 from .exchange import run_export, run_import
 from .manifest import run as run_manifest
 from .merge import run as run_merge
@@ -45,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
             "verify",
             "stats",
             "trace",
+            "events",
             "export",
             "import",
         ),
@@ -204,6 +214,54 @@ def build_parser() -> argparse.ArgumentParser:
     add_format_argument(trace_parser)
     trace_parser.set_defaults(func=run_trace)
     command_parsers["trace"] = trace_parser
+
+    events_parser = subparsers.add_parser("events", help="Append or list Event log records.")
+    events_subparsers = events_parser.add_subparsers(
+        dest="events_command", metavar="<events-command>"
+    )
+
+    events_append_parser = events_subparsers.add_parser(
+        "append", help="Append an Actor-authored Event record."
+    )
+    events_append_parser.add_argument("source", help="Target .liel file; created if missing.")
+    events_append_parser.add_argument(
+        "--author", required=True, help="Actor stable key, e.g. actor:local-coder."
+    )
+    events_append_parser.add_argument(
+        "--operation", required=True, help="Event operation, e.g. create_node."
+    )
+    events_append_parser.add_argument(
+        "--target", required=True, help="Target node / edge / property key."
+    )
+    events_append_parser.add_argument(
+        "--payload-json", help="JSON object payload or @path to a JSON file."
+    )
+    events_append_parser.add_argument(
+        "--event-id", help="Stable event id; auto-generated when omitted."
+    )
+    events_append_parser.add_argument("--parent-event-id", help="Previous or branching event id.")
+    events_append_parser.add_argument(
+        "--timestamp", help="ISO 8601 UTC timestamp; defaults to now."
+    )
+    events_append_parser.add_argument("--actor-name", help="Human-readable Actor name.")
+    events_append_parser.add_argument("--actor-kind", default="ai_agent", help="Actor kind.")
+    events_append_parser.add_argument(
+        "--legacy-agent-key", help="Optional legacy agent:* compatibility key."
+    )
+    events_append_parser.add_argument(
+        "--caused-by", help="Event id that semantically caused this event."
+    )
+    events_append_parser.add_argument(
+        "--source-key", action="append", help="Existing Source key cited by this event."
+    )
+    add_format_argument(events_append_parser)
+    events_append_parser.set_defaults(func=run_event_append)
+
+    events_list_parser = events_subparsers.add_parser("list", help="List Event log records.")
+    events_list_parser.add_argument("source", help="Source .liel file.")
+    add_format_argument(events_list_parser)
+    events_list_parser.set_defaults(func=run_event_list)
+    command_parsers["events"] = events_parser
 
     export_parser = subparsers.add_parser("export", help="Export a .liel file as JSON.")
     export_parser.add_argument("source", help="Source .liel file.")

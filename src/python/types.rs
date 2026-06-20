@@ -142,14 +142,14 @@ fn py_to_prop_depth(_py: Python, obj: &Bound<PyAny>, depth: usize) -> PyResult<P
     if let Ok(s) = obj.extract::<String>() {
         return Ok(PropValue::String(s));
     }
-    if let Ok(list) = obj.downcast::<PyList>() {
+    if let Ok(list) = obj.cast::<PyList>() {
         let mut items = Vec::new();
         for item in list.iter() {
             items.push(py_to_prop_depth(_py, &item, depth + 1)?);
         }
         return Ok(PropValue::List(items));
     }
-    if let Ok(dict) = obj.downcast::<PyDict>() {
+    if let Ok(dict) = obj.cast::<PyDict>() {
         let mut map = HashMap::new();
         for (k, v) in dict.iter() {
             let key: String = k.extract()?;
@@ -203,7 +203,7 @@ fn bool_to_pyobject(py: Python, b: bool) -> PyResult<PyObject> {
 // ─── Internal helpers ────────────────────────────────────────────────────────
 
 fn node_id_from_py(py_node: &Bound<PyAny>) -> PyResult<u64> {
-    if let Ok(node) = py_node.downcast::<PyNode>() {
+    if let Ok(node) = py_node.cast::<PyNode>() {
         return Ok(node.borrow().id());
     }
     if let Ok(id) = py_node.extract::<u64>() {
@@ -641,7 +641,7 @@ impl PyGraphDB {
     }
 
     fn delete_edge(&self, edge_arg: &Bound<PyAny>) -> PyResult<()> {
-        let id = if let Ok(e) = edge_arg.downcast::<PyEdge>() {
+        let id = if let Ok(e) = edge_arg.cast::<PyEdge>() {
             e.borrow().id()
         } else {
             edge_arg.extract::<u64>()?

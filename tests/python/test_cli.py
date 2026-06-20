@@ -49,6 +49,7 @@ def test_cli_without_args_prints_help(capsys):
     assert "help" in out
     assert "version" in out
     assert "pack" in out
+    assert "events" in out
 
 
 def test_cli_help_prints_top_level_help(capsys):
@@ -58,6 +59,7 @@ def test_cli_help_prints_top_level_help(capsys):
     assert "diff" in out
     assert "merge" in out
     assert "pack" in out
+    assert "events" in out
 
 
 def test_cli_help_prints_command_help(capsys):
@@ -98,6 +100,14 @@ def test_cli_help_prints_sign_and_verify_help(capsys):
     verify_out = capsys.readouterr().out
     assert "usage: liel verify" in verify_out
     assert "--signature" in verify_out
+
+
+def test_cli_help_prints_events_help(capsys):
+    assert cli.main(["help", "events"]) == 0
+    out = capsys.readouterr().out
+    assert "usage: liel events" in out
+    assert "append" in out
+    assert "list" in out
 
 
 def test_cli_help_prints_stats_help(capsys):

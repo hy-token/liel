@@ -25,6 +25,7 @@ For API-level detail (methods, limits, non-goals), see the [feature list](featur
 | Python API | `bfs` / `dfs` / `shortest_path` | Python developers; agents | Walk impact and dependency paths (shortest path: unweighted, directed, min hops). |
 | Python API | `merge_from()` | Python developers | Integrate another `.liel` with ID remapping and merge policies. |
 | Python API | `liel.coding_memory` (experimental) | Python developers; agents | Thin `File` / `Decision` / bug-shaped `Task` helpers on `GraphDB` ([Python guide](../guide/connectors/python.md#coding-memory-helpers)). |
+| Python API | `liel.event_graph` (experimental, v0.8) | Adapter authors; agent tools | Generic `Actor` / append-only `Event` helpers for Event-Sourced Knowledge Graph workflows. |
 | CLI | `liel version` | Users; CI | Check the installed version. |
 | CLI | `liel help` | Users | Entry point and per-command help. |
 | CLI | `liel diff` | Developers; reviewers; CI | Compare two `.liel` files. |
@@ -43,6 +44,7 @@ For API-level detail (methods, limits, non-goals), see the [feature list](featur
 | CLI | `liel verify` | Operators; CI | Verify a `.liel` against a signature and key file. |
 | CLI | `liel stats` | Users; reviewers | Quick node/edge counts and label distribution. |
 | CLI | `liel trace` | Users; reviewers; scripts | Shortest path between two node IDs (unweighted, directed); JSON aligns with MCP `liel_trace`. |
+| CLI | `liel events append` / `liel events list` | Adapter authors; reviewers; CI | Append and inspect Actor-authored Event records without adding tool-specific concepts to core. |
 | CLI | `liel export` | Developers; tool builders | Export `.liel` to round-trippable JSON. |
 | CLI | `liel import` | Developers; tool builders | Rebuild `.liel` from export JSON. |
 | MCP | `liel_overview` | LLMs; agents | Overall shape of memory (counts, labels, samples). |
@@ -67,7 +69,7 @@ For API-level detail (methods, limits, non-goals), see the [feature list](featur
 | Docs | Vector hybrid conventions | Teams; integrators | Optional properties when pairing `liel` with external embeddings ([vector-conventions](vector-conventions.md)). |
 | Docs | Schema profiles (optional) | Teams; validators | Optional per-label expectations outside core enforcement ([schema-profiles](schema-profiles.md)). |
 
-**In one sentence:** `liel` is not only a lightweight embedded graph store; it is a **single-file graph memory toolkit** to **store, compare, verify, merge, and expose** local AI memory—including from agents via MCP.
+**In one sentence:** `liel` is not only a lightweight embedded graph store; it is a **single-file graph memory toolkit** to **store, compare, verify, merge, expose, and event-source** local AI memory—including from agents via MCP.
 
 ---
 

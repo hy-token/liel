@@ -9,7 +9,8 @@
 ## Git-compatible working memory for AI agents.
 
 Review, diff, merge, trace, and inspect coding-agent memory as a single local
-file.
+file. v0.8 also adds Event-Sourced Knowledge Graph primitives for recording
+who formed a piece of knowledge and which append-only Event produced it.
 
 **Docs:** [https://hy-token.github.io/liel/](https://hy-token.github.io/liel/)
 
@@ -97,6 +98,45 @@ visible—not just the final answer.
 ![`liel trace` narrative output (shortest path through decision nodes)](https://raw.githubusercontent.com/hy-token/liel/main/assets/demo/demo-trace.wsl.gif)
 
 The name *liel* comes from the French *lier* — to connect, to bind.
+
+
+## Event-sourced knowledge graph primitives (v0.8)
+
+For adapters and local automation that need a generic memory substrate, `liel`
+now exposes a small Actor/Event layer without changing the `.liel` file format:
+
+```python
+import liel
+
+with liel.open("memory.liel") as db:
+    liel.ensure_actor(
+        db,
+        "actor:local-coder",
+        name="Local Coder",
+        legacy_agent_key="agent:local-coder",
+    )
+    liel.append_event(
+        db,
+        author="actor:local-coder",
+        operation="create_node",
+        target="decision:event-log-first",
+        payload={"title": "Start with append-only Event log"},
+    )
+    db.commit()
+```
+
+The matching CLI is intentionally small:
+
+```bash
+liel events append memory.liel --author actor:local-coder \
+  --operation create_node --target decision:event-log-first \
+  --payload-json '{"title":"Start with append-only Event log"}'
+liel events list memory.liel --format json
+```
+
+Tool-specific concepts such as Omnigent sessions, tool calls, or reviews should
+be implemented as adapters that map into `Actor`, `Event`, `Source`, and normal
+graph nodes/edges rather than as core storage objects.
 
 ## Coding memory helpers (experimental)
 

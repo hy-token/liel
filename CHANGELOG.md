@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **1.0.0** — Complete multi-OS release evidence, tag `v1.0.0`, switch PyPI `Development Status` to **Production/Stable**, and publish after maintainer sign-off.
 
+## [0.8.0] - 2026-06-18
+
+### Added
+
+- **Event-Sourced Knowledge Graph primitives** — `liel.event_graph` adds experimental v0.8 helpers for `Actor` provenance and append-only `Event` records: `ensure_actor()`, `append_event()`, and `list_events()`. Existing `Agent` vocabulary remains compatible as an `Actor` alias/subtype.
+- **Event log CLI** — `liel events append` records an Actor-authored Event into a single `.liel` file, and `liel events list` inspects Event history in text or JSON.
+- **v0.8 design docs** — Internal design notes define the Event-Sourced Knowledge Graph direction, adapter boundary for tool-specific concepts such as Omnigent sessions/tool calls, sidecar policy, and deferred concepts such as Revision/Branch/Proposal.
+
+### Changed
+
+- **Product positioning** — Public docs now describe `liel` as a single-file graph memory toolkit that can also preserve how knowledge was formed through Actor/Event provenance.
+- **Release scope** — v0.8 keeps the on-disk format unchanged and ships only helper/CLI surfaces for the new primitives; daemon, multi-writer storage, and first-class Session/ToolCall/Review/Revision/Proposal/Branch remain out of core.
+
+### Versioning
+
+- **0.8.0** — Python package and Rust crate **`0.8.0`**. Minor pre-1.0 release focused on Event-Sourced Knowledge Graph primitives while **`Development Status` remains `4 - Beta`**.
+
 ## [0.7.1] - 2026-05-14
 
 ### Fixed
@@ -964,6 +981,7 @@ First public Beta PyPI release.
 [0.6.1]: https://github.com/hy-token/liel/releases/tag/v0.6.1
 [0.6.2]: https://github.com/hy-token/liel/releases/tag/v0.6.2
 [0.6.3]: https://github.com/hy-token/liel/releases/tag/v0.6.3
+[0.8.0]: https://github.com/hy-token/liel/releases/tag/v0.8.0
 [0.7.1]: https://github.com/hy-token/liel/releases/tag/v0.7.1
 [0.7.0]: https://github.com/hy-token/liel/releases/tag/v0.7.0
 [0.6.4]: https://github.com/hy-token/liel/releases/tag/v0.6.4

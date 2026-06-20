@@ -37,12 +37,35 @@ Field stability is command-specific:
 | Round-trip exchange | `liel export`, `liel import` | Import: `--format json` for summary | `0` | Export stdout is JSON. |
 | Snapshot counts | `liel stats` | Yes | `0` | Label histograms. |
 | Shortest path between nodes | `liel trace` | Yes | `0` | Path query; `path` may be `null`. Aligns with MCP `liel_trace`. |
+| Event log append / inspect | `liel events append`, `liel events list` | Yes | `0` | v0.8 Actor/Event helper surface; JSON is experimental but documented below. |
 
 Process-level failures (`CliError`): exit `2` usage, exit `1` unexpected error — consistent across commands unless noted.
 
 `liel sign` / `liel verify` consume `manifest` bytes; see the command-line guide.
 
 ---
+
+
+## `liel events append --format json`
+
+Appends one Actor-authored `Event` node to a `.liel` file, creating the Actor if needed. The command exits `0` after commit succeeds. Usage errors or write failures use the common CLI error exits.
+
+Top-level shape:
+
+| Field | Meaning |
+|-------|---------|
+| `event_node_id` | Local node ID assigned to the appended `Event`. |
+| `event` | Event node properties after commit. Includes at least `key`, `event_id`, `parent_event_id`, `timestamp`, `author`, `operation`, `target`, and `payload`. |
+
+`event` is intentionally the graph record payload rather than a separate protocol object. Compatible additions are allowed while `events` remains the v0.8 experimental helper surface.
+
+## `liel events list --format json`
+
+Lists Event node properties sorted by `timestamp` and then `event_id`.
+
+| Field | Meaning |
+|-------|---------|
+| `events` | Array of Event node property objects. |
 
 ## `liel trace --format json`
 

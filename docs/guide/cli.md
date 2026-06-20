@@ -4,8 +4,8 @@ The `liel` console script is the shared command-line entry point for local file
 operations. It is implemented in Python and calls the public Python package API.
 The Rust core and `.liel` file format are unchanged.
 
-For JSON payloads and process exit codes across `diff`, `merge`, `stats`,
-`manifest`, `export`, and `import`, see the [CLI JSON inventory](../reference/cli-json-inventory.md).
+For JSON payloads and process exit codes across `events`, `diff`, `merge`,
+`stats`, `manifest`, `export`, and `import`, see the [CLI JSON inventory](../reference/cli-json-inventory.md).
 
 Existing specialized scripts remain available:
 
@@ -89,6 +89,7 @@ liel help sign
 liel help verify
 liel help stats
 liel help trace
+liel help events
 liel help export
 liel help import
 ```
@@ -102,6 +103,37 @@ specific command. The usual `--help` and `-h` flags are also available.
 liel version
 liel version --format json
 ```
+
+
+## Events
+
+`liel events` is the v0.8 Event-Sourced Knowledge Graph CLI surface. It records
+Actor-authored Event nodes without adding tool-specific concepts such as
+Session, ToolCall, Review, Revision, Proposal, or Branch to core storage.
+
+Append an event, creating the Actor if needed:
+
+```bash
+liel events append memory.liel \
+  --author actor:local-coder \
+  --legacy-agent-key agent:local-coder \
+  --operation create_node \
+  --target decision:event-log-first \
+  --payload-json '{"title":"Start with append-only Event log"}'
+```
+
+List events:
+
+```bash
+liel events list memory.liel
+liel events list memory.liel --format json
+```
+
+`--payload-json` accepts a JSON object directly or `@path/to/payload.json`.
+`--event-id` may be supplied for deterministic fixtures; otherwise the helper
+allocates the next `event:000001`-style ID. `--parent-event-id`, `--caused-by`,
+and repeated `--source-key` let adapters record event-log structure, causal
+links, and cited `Source` nodes without changing the file format.
 
 ## Diff
 

@@ -109,10 +109,20 @@ The on-disk encoding is a **custom binary format** (no external `serde`). The ca
 | Item | Detail |
 |---|---|
 | `liel.__version__` | Matches the installed Python package version |
-| Type hints | `python/liel/liel.pyi` |
+| Type hints | `python/liel/liel.pyi` plus inline typed Python helpers |
 | Exceptions | `GraphDBError` and its subclasses (`NodeNotFoundError`, …) — see [Python API](../guide/connectors/python.md) |
 
 ---
+
+### Event-Sourced Knowledge Graph helpers
+
+| Helper | Description |
+|---|---|
+| `liel.ensure_actor(db, key, ...)` | Create or reuse an `Actor`; optionally also label it as legacy-compatible `Agent`. |
+| `liel.append_event(db, ...)` | Append an Actor-authored `Event` node with `event_id`, `parent_event_id`, `timestamp`, `author`, `operation`, `target`, and `payload`. |
+| `liel.list_events(db)` | Return Event node properties sorted by timestamp and event id. |
+
+These helpers are experimental v0.8 conventions on top of `GraphDB`; they do not change the `.liel` file format.
 
 ## 11. Practical scale (guidance, not a guarantee)
 
@@ -130,7 +140,7 @@ The reasoning ("why not, considered alternatives, why rejected, why chosen") is 
 - Weighted shortest paths (Dijkstra etc.)
 - Undirected-only graph model
 - Property index
-- Standard reserved metadata keys (creation time, update time, source, session); these may be added later, but no metadata convention is enforced today
+- Fully enforced metadata ontology. v0.8 provides experimental `Actor` / `Event` helper conventions, but core storage still accepts ordinary graph labels/properties and does not enforce a global schema
 - Full-text search and aggregation engines
 - Visualization API in core
 - JSON export/import in core

@@ -30,6 +30,9 @@ def test_module_exports_expected_symbols():
         "MergeError",
         "CapacityExceededError",
         "AlreadyOpenError",
+        "append_event",
+        "ensure_actor",
+        "list_events",
     }
 
     assert set(liel.__all__) == expected

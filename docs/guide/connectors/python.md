@@ -30,6 +30,40 @@ The runtime detects double-open and raises `liel.AlreadyOpenError` (a subclass o
 
 ---
 
+
+## Event graph helpers (v0.8 experimental)
+
+`liel.event_graph` provides a minimal Event-Sourced Knowledge Graph convention
+on top of `GraphDB`. It is intended for adapters and local automation that need
+portable Actor provenance and append-only Event history without introducing
+framework-specific core objects.
+
+```python
+import liel
+
+with liel.open("memory.liel") as db:
+    liel.ensure_actor(
+        db,
+        "actor:local-coder",
+        name="Local Coder",
+        legacy_agent_key="agent:local-coder",
+    )
+    liel.append_event(
+        db,
+        author="actor:local-coder",
+        operation="create_node",
+        target="decision:event-log-first",
+        payload={"title": "Start with append-only Event log"},
+    )
+    db.commit()
+```
+
+The helper creates ordinary graph nodes and edges: `Actor`, optional legacy
+`Agent`, `Event`, and `AUTHORED` / `CAUSED_BY` / `CITES` relationships.
+Tool-specific concepts such as sessions, tool calls, reviews, or approvals
+should be mapped into `Event.operation`, `Event.payload`, and sidecar `Source`
+records by adapters.
+
 ## Coding memory helpers (experimental) {#coding-memory-helpers}
 
 The submodule **`liel.coding_memory`** (Wave D) offers thin, opinionated helpers on
